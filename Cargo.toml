@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "vimscript-core",
+    "vimscript-language-server",
+    "vimscript-format",
+    "vimscript-lint",
+]

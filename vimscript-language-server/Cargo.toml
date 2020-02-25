@@ -1,0 +1,8 @@
+[package]
+name = "vimscript-language-server"
+version = "0.1.0"
+authors = ["Tomasz Zurkowski <tomasz.zurkowski@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+vimscript-core = { path = "../vimscript-core" }
