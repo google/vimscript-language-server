@@ -1,6 +1,7 @@
 # Vimscript Language Server
 
-Implementation of Language Server protocol for vimscript / vimL language in Rust.
+Implementation of Language Server protocol for vimscript / vimL language in
+Rust.
 
 This project is under active development.
 
@@ -27,3 +28,7 @@ endif
 ## Contributing
 
 See [Contributing.md](CONTRIBUTING.md).
+
+--------------------------------------------------------------------------------
+
+This is not an officially supported Google product
