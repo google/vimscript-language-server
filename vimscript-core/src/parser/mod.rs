@@ -337,7 +337,7 @@ impl<'a> Parser<'a> {
         let range = self.parse_expression()?;
         self.expect_end_of_statement()?;
 
-        let statements = self.parse_statements_until(TokenType::EndFor);
+        let statements = self.parse_statements_until(TokenType::EndFor)?;
 
         Some(ForStatement {
             loop_variable: loop_variable,
@@ -365,20 +365,20 @@ impl<'a> Parser<'a> {
     }
 
     // Parses statements until the next statement starts with given token or EOF is encountered.
-    //
-    // Post condition: self.peek_type() == token_type or None
-    fn parse_statements_until(&mut self, token_type: TokenType) -> Vec<Statement> {
+    fn parse_statements_until(&mut self, token_type: TokenType) -> Option<Vec<Statement>> {
         let mut stmts = Vec::new();
         while self.peek_token().token_type != TokenType::Eof
             && self.peek_token().token_type != token_type
         {
+            // TODO: It would be nice to pass the expected token here, so that error message can
+            // include it as well.
             if let Some(stmt) = self.parse_statement() {
                 stmts.push(stmt);
             }
         }
-        self.expect_token(token_type);
-        self.expect_end_of_statement();
-        return stmts;
+        self.expect_token(token_type)?;
+        self.expect_end_of_statement()?;
+        return Some(stmts);
     }
 
     fn parse_function_statement(&mut self) -> Option<FunctionStatement> {
@@ -402,7 +402,7 @@ impl<'a> Parser<'a> {
         }
         self.expect_end_of_statement()?;
 
-        let body = self.parse_statements_until(TokenType::EndFunction);
+        let body = self.parse_statements_until(TokenType::EndFunction)?;
 
         return Some(FunctionStatement {
             name: name,
