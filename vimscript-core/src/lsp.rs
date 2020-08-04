@@ -37,7 +37,7 @@ fn token_position_to_range(position: &TokenPosition) -> Range {
             character: position.start.character as u64,
         },
         end: Position {
-            line: position.end.line  as u64,
+            line: position.end.line as u64,
             character: position.end.character as u64,
         },
     }

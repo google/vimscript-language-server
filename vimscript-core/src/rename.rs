@@ -13,13 +13,13 @@
 // limitations under the License.
 
 use crate::lexer::Lexer;
+use crate::lexer::SourcePosition;
 use crate::lexer::TokenPosition;
 use crate::lexer::TokenType;
-use crate::lexer::SourcePosition;
+use crate::parser::Expression;
 use crate::parser::Parser;
 use crate::parser::Program;
 use crate::parser::Statement;
-use crate::parser::Expression;
 use lsp_types::Position;
 use lsp_types::Range;
 use lsp_types::TextEdit;
@@ -53,7 +53,9 @@ struct Rename {
 
 impl Rename {
     fn new() -> Rename {
-        return Rename{token_to_positions: HashMap::new()}
+        return Rename {
+            token_to_positions: HashMap::new(),
+        };
     }
     fn visit(&mut self, program: &Program, parser: &Parser) {
         for stmt in &program.statements {
@@ -79,15 +81,26 @@ impl Rename {
     fn visit_expression(&mut self, expr: &Expression, parser: &Parser) {
         match expr {
             Expression::Identifier(expr) => {
-                let positions = self.token_to_positions.entry(expr.name().to_string()).or_insert(Vec::new());
+                let positions = self
+                    .token_to_positions
+                    .entry(expr.name().to_string())
+                    .or_insert(Vec::new());
                 positions.push(parser.resolve_location(expr.name_location().clone()));
             }
             _ => {}
         }
     }
 
-    pub fn rename(&self, parser: &Parser, pos: Position, new_name: &str) -> Result<Vec<TextEdit>, ()> {
-        let token = parser.find_token(SourcePosition{line: pos.line as i32, character: pos.character as i32})?;
+    pub fn rename(
+        &self,
+        parser: &Parser,
+        pos: Position,
+        new_name: &str,
+    ) -> Result<Vec<TextEdit>, ()> {
+        let token = parser.find_token(SourcePosition {
+            line: pos.line as i32,
+            character: pos.character as i32,
+        })?;
         if token.token_type != TokenType::Ident {
             return Err(());
         }
@@ -95,7 +108,7 @@ impl Rename {
         let positions = &self.token_to_positions[&val];
         let mut edits = Vec::new();
         for pos in positions {
-            edits.push(TextEdit{
+            edits.push(TextEdit {
                 new_text: new_name.to_string(),
                 range: token_position_to_range(pos),
             });

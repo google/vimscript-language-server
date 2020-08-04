@@ -14,11 +14,11 @@
 
 extern crate vimscript_core;
 
-use vimscript_core::lexer::Lexer;
-use vimscript_core::parser::Parser;
-use vimscript_core::format;
 use std::env;
 use std::fs;
+use vimscript_core::format;
+use vimscript_core::lexer::Lexer;
+use vimscript_core::parser::Parser;
 
 fn main() {
     for filename in env::args().skip(1) {

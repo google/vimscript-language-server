@@ -169,7 +169,7 @@ pub struct NumberExpression {
 
 impl NumberExpression {
     pub fn value(&self) -> f64 {
-        return self.value
+        return self.value;
     }
     pub fn dump_for_testing(&self) -> serde_json::Value {
         return json!(self.value);
