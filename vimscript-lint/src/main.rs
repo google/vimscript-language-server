@@ -14,11 +14,11 @@
 
 extern crate vimscript_core;
 
-use vimscript_core::lexer::Lexer;
-use vimscript_core::parser::Parser;
+use serde_json;
 use std::env;
 use std::fs;
-use serde_json;
+use vimscript_core::lexer::Lexer;
+use vimscript_core::parser::Parser;
 
 fn main() {
     let mut total_errors = 0;
@@ -37,9 +37,12 @@ fn main() {
             println!("{:?}", lexer.lex());
         }
         if false {
-            println!("{}", serde_json::to_string_pretty(&program.dump_for_testing()).unwrap());
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&program.dump_for_testing()).unwrap()
+            );
         }
-        println!("\nError count: {}",parser.errors.len());
+        println!("\nError count: {}", parser.errors.len());
     }
     println!("\n\nTotal error count: {}", total_errors);
 }

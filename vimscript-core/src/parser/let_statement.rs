@@ -15,8 +15,8 @@
 use crate::lexer::SourceLocation;
 use crate::lexer::TokenType;
 use crate::parser::Expression;
-use crate::parser::Parser;
 use crate::parser::ParseError;
+use crate::parser::Parser;
 use serde_json::json;
 
 #[derive(PartialEq, Debug)]
@@ -28,13 +28,13 @@ pub struct LetStatement {
 
 impl LetStatement {
     pub fn var(&self) -> &Expression {
-        return &self.var
+        return &self.var;
     }
     pub fn value(&self) -> &Expression {
-        return &self.value
+        return &self.value;
     }
     pub fn operator(&self) -> &TokenType {
-        return &self.operator
+        return &self.operator;
     }
     pub fn dump_for_testing(&self) -> serde_json::Value {
         return json!({
@@ -67,7 +67,10 @@ pub fn parse(parser: &mut Parser) -> Option<LetStatement> {
     let operator = parser.peek_token();
     if !is_assign_operator(operator.token_type) {
         parser.errors.push(ParseError {
-            message: format!("expected assign operator, found {}", parser.token_text(&operator)),
+            message: format!(
+                "expected assign operator, found {}",
+                parser.token_text(&operator)
+            ),
             position: parser.l.token_position(&operator.location),
         });
         parser.consume_until_end_of_statement();
@@ -91,10 +94,10 @@ pub fn parse(parser: &mut Parser) -> Option<LetStatement> {
 mod tests {
     use super::*;
     use crate::lexer::Lexer;
-    use crate::parser::ParseError;
-    use crate::parser::Statement;
     use crate::lexer::SourcePosition;
     use crate::lexer::TokenPosition;
+    use crate::parser::ParseError;
+    use crate::parser::Statement;
     use pretty_assertions::assert_eq;
 
     #[test]
@@ -103,15 +106,18 @@ mod tests {
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);
         assert_eq!(program.statements.len(), 1);
-        assert_eq!(program.dump_for_testing(), json!([{
-            "let": {
-                "var": {"identifier": "l:var"},
-                "operator": "`=`",
-                "value": {
-                    "number": 15.0,
+        assert_eq!(
+            program.dump_for_testing(),
+            json!([{
+                "let": {
+                    "var": {"identifier": "l:var"},
+                    "operator": "`=`",
+                    "value": {
+                        "number": 15.0,
+                    },
                 },
-            },
-        }]));
+            }])
+        );
     }
 
     #[test]
@@ -120,15 +126,18 @@ mod tests {
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);
         assert_eq!(program.statements.len(), 1);
-        assert_eq!(program.dump_for_testing(), json!([{
-            "let": {
-                "var": {"identifier": "l:var"},
-                "operator": "`+=`",
-                "value": {
-                    "number": 15.0,
+        assert_eq!(
+            program.dump_for_testing(),
+            json!([{
+                "let": {
+                    "var": {"identifier": "l:var"},
+                    "operator": "`+=`",
+                    "value": {
+                        "number": 15.0,
+                    },
                 },
-            },
-        }]));
+            }])
+        );
     }
 
     #[test]

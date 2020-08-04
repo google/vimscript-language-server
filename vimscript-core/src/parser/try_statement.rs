@@ -58,7 +58,7 @@ pub fn parse(parser: &mut Parser) -> Option<TryStatement> {
         TokenType::Finally => {
             parser.advance();
             parser.expect_end_of_statement()?;
-            let finally = parser.parse_statements_until(TokenType::EndTry);
+            let finally = parser.parse_statements_until(TokenType::EndTry)?;
             return Some(TryStatement {
                 body: body,
                 finally: Some(finally),

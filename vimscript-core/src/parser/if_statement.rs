@@ -79,7 +79,7 @@ pub fn parse(parser: &mut Parser) -> Option<IfStatement> {
         if parser.peek_token().token_type == TokenType::Else {
             parser.advance();
             parser.expect_end_of_statement()?;
-            let else_cond = parser.parse_statements_until(TokenType::EndIf);
+            let else_cond = parser.parse_statements_until(TokenType::EndIf)?;
             return Some(IfStatement {
                 condition: condition,
                 then: stmts,

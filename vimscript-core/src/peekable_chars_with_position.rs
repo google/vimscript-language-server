@@ -27,7 +27,7 @@ pub struct PeekableCharsWithPosition<'a> {
     size: usize,
 }
 
-impl <'a> PeekableCharsWithPosition<'a> {
+impl<'a> PeekableCharsWithPosition<'a> {
     pub fn new(input: &'a str) -> PeekableCharsWithPosition<'a> {
         let mut chars = input.char_indices();
         let ch = chars.next().map(|(_, c)| c);
@@ -50,7 +50,7 @@ impl <'a> PeekableCharsWithPosition<'a> {
     }
 }
 
-impl <'a> Iterator for PeekableCharsWithPosition<'a> {
+impl<'a> Iterator for PeekableCharsWithPosition<'a> {
     type Item = char;
 
     // Returns the current element and advances the iterator.

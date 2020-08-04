@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod lexer;
-pub mod parser;
-pub mod protocol;
-pub mod server;
-pub mod lsp;
-pub mod rename;
 pub mod format;
-mod token_iterator;
+pub mod lexer;
+pub mod lsp;
+pub mod parser;
 mod peekable_chars_with_position;
+pub mod protocol;
+pub mod rename;
+pub mod server;
+mod token_iterator;

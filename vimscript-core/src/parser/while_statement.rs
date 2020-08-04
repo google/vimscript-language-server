@@ -37,7 +37,7 @@ impl WhileStatement {
 pub fn parse(parser: &mut Parser) -> Option<WhileStatement> {
     let condition = parser.parse_expression()?;
     parser.expect_end_of_statement()?;
-    let body = parser.parse_statements_until(TokenType::EndWhile);
+    let body = parser.parse_statements_until(TokenType::EndWhile)?;
     return Some(WhileStatement {
         condition: condition,
         body: body,
