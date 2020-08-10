@@ -70,6 +70,9 @@ pub enum TokenType {
     LessOrEqual,
     Greater,
     GreaterOrEqual,
+    RegexpMatchesIgnoreCase,
+    RegexpMatchesCaseSensitive,
+    RegexpMatchesCaseInSensitive,
     And,
     Or,
     Pipe,
@@ -140,6 +143,9 @@ impl TokenType {
             TokenType::LessOrEqual => "`<=`",
             TokenType::Greater => "`>`",
             TokenType::GreaterOrEqual => "`>=`",
+            TokenType::RegexpMatchesIgnoreCase => "`=~`",
+            TokenType::RegexpMatchesCaseSensitive => "`=~#`",
+            TokenType::RegexpMatchesCaseInSensitive => "`=~?`",
             TokenType::And => "`&&`",
             TokenType::Or => "`||`",
             TokenType::Pipe => "`|`",
@@ -209,6 +215,9 @@ impl TokenType {
             TokenType::LessOrEqual => "`<=`",
             TokenType::Greater => "`>`",
             TokenType::GreaterOrEqual => "`>=`",
+            TokenType::RegexpMatchesIgnoreCase => "`=~`",
+            TokenType::RegexpMatchesCaseSensitive => "`=~#`",
+            TokenType::RegexpMatchesCaseInSensitive => "`=~?`",
             TokenType::And => "`&&`",
             TokenType::Or => "`||`",
             TokenType::Pipe => "`|`",
@@ -230,7 +239,7 @@ impl TokenType {
     }
 }
 
-// Location in a source code (most of the time point to the start of the token).
+/// Location in a source code (most of the time points to the start of the token).
 #[derive(PartialEq, Debug, Clone)]
 pub struct SourceLocation {
     range: std::ops::Range<usize>,
@@ -473,6 +482,22 @@ impl<'a> Lexer<'a> {
                     }
                     _ => {
                         self.add_token(TokenType::Equal);
+                    }
+                }
+            }
+            Some('~') => {
+                self.chars.next();
+                match self.chars.peek() {
+                    Some('#') => {
+                        self.chars.next();
+                        self.add_token(TokenType::RegexpMatchesCaseSensitive);
+                    }
+                    Some('?') => {
+                        self.chars.next();
+                        self.add_token(TokenType::RegexpMatchesCaseInSensitive);
+                    }
+                    _ => {
+                        self.add_token(TokenType::RegexpMatchesIgnoreCase);
                     }
                 }
             }
@@ -841,7 +866,7 @@ mod tests {
     #[test]
     fn parses_comparison_operators() {
         assert_eq!(
-            parse_source("==# !=# ==? !=? == != < <= > >= &&"),
+            parse_source("==# !=# ==? !=? == != < <= > >= && =~ =~# =~?"),
             &[
                 (TokenType::EqualCaseSensitive, "==#"),
                 (TokenType::InEqualCaseSensitive, "!=#"),
@@ -854,6 +879,9 @@ mod tests {
                 (TokenType::Greater, ">"),
                 (TokenType::GreaterOrEqual, ">="),
                 (TokenType::And, "&&"),
+                (TokenType::RegexpMatchesIgnoreCase, "=~"),
+                (TokenType::RegexpMatchesCaseSensitive, "=~#"),
+                (TokenType::RegexpMatchesCaseInSensitive, "=~?"),
             ],
         )
     }
