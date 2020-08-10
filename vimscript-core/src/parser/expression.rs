@@ -176,11 +176,50 @@ impl NumberExpression {
     }
 }
 
+#[derive(PartialEq, Debug)]
+pub enum ArraySubscript {
+    Index(Expression),
+    Sublist(Sublist),
+}
+
+impl ArraySubscript {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return match self {
+            ArraySubscript::Index(e) => json!({"index": e.dump_for_testing()}),
+            ArraySubscript::Sublist(e) => json!({"sublist": e.dump_for_testing()}),
+        };
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct Sublist {
+    pub left: Option<Expression>,
+    pub right: Option<Expression>,
+}
+
+impl Sublist {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        if let Some(x) = &self.left {
+            if let Some(y) = &self.right {
+                return json!({
+                    "left": x.dump_for_testing(),
+                    "right": y.dump_for_testing()
+                });
+            }
+            return json!({"left": x.dump_for_testing()});
+        }
+        if let Some(y) = &self.right {
+            return json!({"right": y.dump_for_testing()});
+        }
+        return json!({});
+    }
+}
+
 // Represents `base[idx]`
 #[derive(PartialEq, Debug)]
 pub struct ArraySubscriptExpression {
     pub base: Box<Expression>,
-    pub idx: Box<Expression>,
+    pub idx: Box<ArraySubscript>,
 }
 
 impl ArraySubscriptExpression {
@@ -317,7 +356,7 @@ fn parse_ident_expression(parser: &mut Parser) -> Option<Expression> {
             }
             TokenType::LeftBracket => {
                 parser.advance();
-                let idx = parser.parse_expression()?;
+                let idx = parse_array_subscript(parser)?;
                 parser.expect_token(TokenType::RightBracket)?;
                 left = Expression::ArraySubscript(ArraySubscriptExpression {
                     base: Box::new(left),
@@ -327,6 +366,26 @@ fn parse_ident_expression(parser: &mut Parser) -> Option<Expression> {
             _ => return Some(left),
         }
     }
+}
+
+fn parse_array_subscript(parser: &mut Parser) -> Option<ArraySubscript> {
+    let mut left = None;
+    if parser.peek_token().token_type != TokenType::Colon {
+        left = Some(parser.parse_expression()?);
+    }
+
+    if parser.peek_token().token_type == TokenType::Colon {
+        parser.advance();
+        let mut right = None;
+        if parser.peek_token().token_type != TokenType::RightBracket {
+            right = Some(parser.parse_expression()?);
+        }
+        return Some(ArraySubscript::Sublist(Sublist {
+            left: left,
+            right: right,
+        }))
+    }
+    return Some(ArraySubscript::Index(left?))
 }
 
 fn parse_dictionary_entry(parser: &mut Parser) -> Option<DictionaryEntry> {
@@ -545,7 +604,7 @@ mod tests {
             json!({
                 "arraySubscript": {
                     "base": {"identifier": "a"},
-                    "idx": {"number": 1.0},
+                    "idx": {"index": {"number": 1.0}},
                 },
             })
         );
@@ -577,6 +636,85 @@ mod tests {
     }
 
     #[test]
+    fn parses_array_subscript_with_variable() {
+        let mut parser = Parser::new(Lexer::new("a[s:e]"));
+        let expression = parse(&mut parser);
+        assert_eq!(parser.errors, &[]);
+        assert_eq!(
+            expression.unwrap().dump_for_testing(),
+            json!({
+                "arraySubscript": {
+                    "base": {"identifier": "a"},
+                    "idx": {
+                        "index": { "identifier": "s:e" },
+                    },
+                },
+            })
+        );
+    }
+
+    #[test]
+    fn parses_sublist() {
+        let mut parser = Parser::new(Lexer::new("a[s : e]"));
+        let expression = parse(&mut parser);
+        assert_eq!(parser.errors, &[]);
+        assert_eq!(
+            expression.unwrap().dump_for_testing(),
+            json!({
+                "arraySubscript": {
+                    "base": {"identifier": "a"},
+                    "idx": {
+                        "sublist": {
+                            "left": {"identifier": "s"},
+                            "right": {"identifier": "e"},
+                        },
+                    },
+                },
+            })
+        );
+    }
+
+    #[test]
+    fn parses_sublist_just_end() {
+        let mut parser = Parser::new(Lexer::new("a[: e]"));
+        let expression = parse(&mut parser);
+        assert_eq!(parser.errors, &[]);
+        assert_eq!(
+            expression.unwrap().dump_for_testing(),
+            json!({
+                "arraySubscript": {
+                    "base": {"identifier": "a"},
+                    "idx": {
+                        "sublist": {
+                            "right": {"identifier": "e"},
+                        },
+                    },
+                },
+            })
+        );
+    }
+
+    #[test]
+    fn parses_sublist_just_start() {
+        let mut parser = Parser::new(Lexer::new("a[s :]"));
+        let expression = parse(&mut parser);
+        assert_eq!(parser.errors, &[]);
+        assert_eq!(
+            expression.unwrap().dump_for_testing(),
+            json!({
+                "arraySubscript": {
+                    "base": {"identifier": "a"},
+                    "idx": {
+                        "sublist": {
+                            "left": {"identifier": "s"},
+                        },
+                    },
+                },
+            })
+        );
+    }
+
+    #[test]
     fn parses_multi_array_subscript() {
         let mut parser = Parser::new(Lexer::new("a[1][2]"));
         let expression = parse(&mut parser);
@@ -588,10 +726,10 @@ mod tests {
                     "base": {
                         "arraySubscript": {
                             "base": {"identifier": "a"},
-                            "idx": {"number": 1.0},
+                            "idx": {"index": {"number": 1.0}},
                         },
                     },
-                    "idx": {"number": 2.0},
+                    "idx": {"index": {"number": 2.0}},
                 },
             })
         );

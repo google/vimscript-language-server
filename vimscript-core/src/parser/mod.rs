@@ -595,30 +595,6 @@ mod tests {
     // }
 
     #[test]
-    #[ignore]
-    fn parses_array_subscript_expression() {
-        let mut parser = Parser::new(Lexer::new("let x = a[1]"));
-        let program = parser.parse();
-
-        assert_eq!(parser.errors, &[]);
-        assert_eq!(program.statements.len(), 1);
-        let let_stmt = match &program.statements[0] {
-            Statement::Let(stmt) => stmt,
-            stmt => panic!(format!("expected let statement, got {:?}", stmt)),
-        };
-        assert_eq!(let_stmt.value().to_string(), "a[1]");
-        let array_expr = match &let_stmt.value() {
-            Expression::ArraySubscript(expr) => expr,
-            expr => panic!(format!(
-                "expected ArraySubscript expression, got {:?}",
-                expr
-            )),
-        };
-        assert_eq!(array_expr.base.to_string(), "a");
-        assert_eq!(array_expr.idx.to_string(), "1");
-    }
-
-    #[test]
     fn parses_function_statement() {
         let mut parser = Parser::new(Lexer::new(
             "
