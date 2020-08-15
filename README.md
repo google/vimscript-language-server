@@ -3,7 +3,21 @@
 Implementation of Language Server protocol for vimscript / vimL language in
 Rust.
 
-This project is under active development.
+This project is still in very early development stage - it does not support all
+of vimscript syntax and most features are not implemented yet.
+
+The long term goal is to implement vimscript AST that will allow for:
+
+* building language server
+* building vimscript formatter, that vim plugins could use in CI
+* building linter, that vim plugin could use in CI
+
+The next steps:
+
+* perform additional analysis on AST (e.g. variable tracking), to allow for features like renaming,
+* build a foundation for formatter,
+* build a foundation for generic linter (so that custom checks can be added),
+* support all syntax of vimscript.
 
 ## Setup
 
@@ -12,6 +26,8 @@ This project is under active development.
 ```shell
 $ cargo build
 ```
+
+Then, copy built binary to a location that is in your PATH.
 
 ### Configure in vim-lsp
 
