@@ -16,10 +16,12 @@
 use std::io;
 use std::io::prelude::*;
 
-// Reads the content of the next message from given input.
-//
-// The input is expected to provide a message as described by "Base Protocol" of Language Server
-// Protocol.
+/// Reads the content of the next message from given input.
+///
+/// The input is expected to provide a message as described by "Base Protocol" of Language Server
+/// Protocol.
+///
+/// If this method is called when reader is empty, it returns `UnexpectedEof` error.
 pub fn read_message<R: BufRead>(input: &mut R) -> Result<String, io::Error> {
     // Read in the "Content-Length: xx" part.
     let mut size: Option<usize> = None;

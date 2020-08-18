@@ -16,7 +16,7 @@ use crate::lexer::Lexer;
 use crate::lexer::TokenPosition;
 use crate::parser::Parser;
 use crate::server::Message;
-use crate::server::MySender;
+use crate::server::LspSender;
 use crate::server::Read;
 use crate::server::Server;
 use crate::server::Write;
@@ -29,6 +29,16 @@ use lsp_types::PublishDiagnosticsParams;
 use lsp_types::Range;
 use lsp_types::Url;
 use serde_json::json;
+
+/// Runs the main loop of the LSP server.
+///
+/// This method finishes when `exit` notification is received.
+pub fn run<R: Read, W: Write + Send + 'static>(server: Server<R, W>) {
+    let sender: LspSender = server.sender();
+    for msg in server {
+        handle_message(msg, &sender);
+    }
+}
 
 fn token_position_to_range(position: &TokenPosition) -> Range {
     Range {
@@ -43,14 +53,7 @@ fn token_position_to_range(position: &TokenPosition) -> Range {
     }
 }
 
-pub fn run<R: Read, W: Write + Send + 'static>(server: Server<R, W>) {
-    let sender: MySender = server.sender();
-    for msg in server {
-        handle_message(msg, &sender);
-    }
-}
-
-fn handle_message(msg: Message, sender: &MySender) {
+fn handle_message(msg: Message, sender: &LspSender) {
     match msg {
         Message::Request(req) => {
             if req.method == "initialize" {
@@ -73,11 +76,11 @@ fn handle_message(msg: Message, sender: &MySender) {
     }
 }
 
-fn handle_did_open(params: DidOpenTextDocumentParams, sender: &MySender) {
+fn handle_did_open(params: DidOpenTextDocumentParams, sender: &LspSender) {
     publish_diagnostics(&params.text_document.text, params.text_document.uri, sender);
 }
 
-fn handle_did_change(params: DidChangeTextDocumentParams, sender: &MySender) {
+fn handle_did_change(params: DidChangeTextDocumentParams, sender: &LspSender) {
     // TODO: this only works when we have one content change!
     publish_diagnostics(
         &params.content_changes[0].text,
@@ -86,7 +89,7 @@ fn handle_did_change(params: DidChangeTextDocumentParams, sender: &MySender) {
     );
 }
 
-fn publish_diagnostics(text: &str, uri: Url, sender: &MySender) {
+fn publish_diagnostics(text: &str, uri: Url, sender: &LspSender) {
     let mut parser = Parser::new(Lexer::new(text));
     parser.parse();
     let mut diagnostics_params = PublishDiagnosticsParams {

@@ -23,29 +23,19 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::Weak;
 
+/// The Read trait allows for reading utf-8 packets from a source.
+pub trait Read {
+    fn read_packet(&mut self) -> Result<String, io::Error>;
+}
+
+/// The Write trait allows for writing utf-8 packets to a destination.
+pub trait Write {
+    fn write_packet(&self, packet: String) -> Result<(), io::Error>;
+}
+
 pub enum Message {
     Request(Request),
     Notification(Notification),
-}
-
-pub struct ResponseHandle {
-    id: Id,
-    writer: Arc<Mutex<dyn Write + Send>>,
-}
-
-impl ResponseHandle {
-    pub fn respond(self, response: Result<serde_json::Value, serde_json::Value>) {
-        self.writer
-            .lock()
-            .unwrap()
-            .write_packet(match response {
-                Ok(result) => {
-                    json!({ "jsonrpc": "2.0", "id": self.id, "result": result}).to_string()
-                }
-                Err(error) => json!({ "jsonrpc": "2.0", "id": self.id, "error": error}).to_string(),
-            })
-            .unwrap();
-    }
 }
 
 pub struct Request {
@@ -59,25 +49,111 @@ pub struct Notification {
     pub params: serde_json::Value,
 }
 
+pub struct ResponseHandle {
+    id: Id,
+    writer: Arc<Mutex<dyn Write + Send>>,
+}
+
+impl ResponseHandle {
+    pub fn respond(self, response: Result<serde_json::Value, serde_json::Value>) {
+        // TODO: Improve error handling if responding fails.
+        self.writer
+            .lock()
+            .unwrap()
+            .write_packet(match response {
+                Ok(result) => {
+                    json!({ "jsonrpc": "2.0", "id": self.id, "result": result}).to_string()
+                }
+                Err(error) => json!({ "jsonrpc": "2.0", "id": self.id, "error": error}).to_string(),
+            })
+            .unwrap();
+    }
+}
+
+/// The LspSender allows to send messages (requests and notification) to the client.
+pub struct LspSender {
+    next_id: Arc<Mutex<Counter>>,
+    writer: Arc<Mutex<dyn Write + Send>>,
+    running_requests: Weak<Mutex<MyMap>>,
+}
+
+impl LspSender {
+    pub fn send_notification(&self, method: &str, params: serde_json::Value) {
+        // TODO: how to properly handle errors here?
+        self.writer
+            .lock()
+            .unwrap()
+            .write_packet(
+                json!(
+                {
+                    "jsonrpc": "2.0",
+                    "method": method,
+                    "params": params}
+                )
+                .to_string(),
+            )
+            .unwrap();
+    }
+
+    pub fn send_request(
+        &self,
+        method: &str,
+        params: serde_json::Value,
+    ) -> Result<serde_json::Value, serde_json::Value> {
+        let running_requests = match self.running_requests.upgrade() {
+            Some(x) => x,
+            None => panic!("failed to upgrade running_requests"),
+        };
+        let id: Id = Id::Number(self.next_id.lock().unwrap().next());
+        let (sender, receiver) = channel();
+        running_requests.lock().unwrap().insert(id.clone(), sender);
+        // TODO: how to properly handle errors here?
+        self.writer
+            .lock()
+            .unwrap()
+            .write_packet(
+                json!(
+                {
+                    "jsonrpc": "2.0",
+                    "id": id,
+                    "method": method,
+                    "params": params}
+                )
+                .to_string(),
+            )
+            .unwrap();
+        return receiver.recv().unwrap();
+    }
+}
+
 type ResultOrError = Result<serde_json::Value, serde_json::Value>;
 type MyMap = HashMap<Id, Sender<ResultOrError>>;
-
-// Basic implementation of LSP Server.
-//
-// It exists after receiving `exit` notification and forwards all other requests and responses to
-// handler passed in run method.
-pub struct Server<R: Read, W: Write> {
-    reader: R,
-    writer: Arc<Mutex<W>>,
-    // Map of requests that are currently waiting for the response from client.
-    running_requests: Arc<Mutex<MyMap>>,
-}
 
 #[derive(Debug, PartialEq, Clone, Hash, Eq, Deserialize, Serialize)]
 #[serde(untagged)]
 enum Id {
     Number(i64),
     String(String),
+}
+
+/// Basic implementation of LSP Server.
+///
+/// Server is responsible for abstracting the communication between the client and the server. The
+/// server:
+/// * serializes and deserializes packets into proper LSP Messages,
+/// * hides the concept of request ID by providing APIs to send new requests, reply to messages
+///   and receive responses,
+/// * handles the `exit` notification, to stop the iterator from receiving any more messages.
+///
+/// It exits after receiving `exit` notification and forwards all other requests and responses to
+/// handler passed in run method.
+///
+/// TODO: Server also returns when error is encountered, but errors are not properly reported yet.
+pub struct Server<R: Read, W: Write> {
+    reader: R,
+    writer: Arc<Mutex<W>>,
+    // Map of requests that are currently waiting for the response from client.
+    running_requests: Arc<Mutex<MyMap>>,
 }
 
 impl<R, W> Iterator for Server<R, W>
@@ -153,8 +229,8 @@ where
         };
     }
 
-    pub fn sender(&self) -> MySender {
-        return MySender {
+    pub fn sender(&self) -> LspSender {
+        return LspSender {
             next_id: Arc::new(Mutex::new(Counter::new())),
             writer: self.writer.clone(),
             running_requests: Arc::downgrade(&self.running_requests),
@@ -175,69 +251,6 @@ impl Counter {
         self.id += 1;
         return self.id;
     }
-}
-
-pub struct MySender {
-    next_id: Arc<Mutex<Counter>>,
-    writer: Arc<Mutex<dyn Write + Send>>,
-    running_requests: Weak<Mutex<MyMap>>,
-}
-
-impl MySender {
-    pub fn send_notification(&self, method: &str, params: serde_json::Value) {
-        // TODO: how to properly handle errors here?
-        self.writer
-            .lock()
-            .unwrap()
-            .write_packet(
-                json!(
-                {
-                    "jsonrpc": "2.0",
-                    "method": method,
-                    "params": params}
-                )
-                .to_string(),
-            )
-            .unwrap();
-    }
-
-    pub fn send_request(
-        &self,
-        method: &str,
-        params: serde_json::Value,
-    ) -> Result<serde_json::Value, serde_json::Value> {
-        let running_requests = match self.running_requests.upgrade() {
-            Some(x) => x,
-            None => panic!("failed to upgrade running_requests"),
-        };
-        let id: Id = Id::Number(self.next_id.lock().unwrap().next());
-        let (sender, receiver) = channel();
-        running_requests.lock().unwrap().insert(id.clone(), sender);
-        // TODO: how to properly handle errors here?
-        self.writer
-            .lock()
-            .unwrap()
-            .write_packet(
-                json!(
-                {
-                    "jsonrpc": "2.0",
-                    "id": id,
-                    "method": method,
-                    "params": params}
-                )
-                .to_string(),
-            )
-            .unwrap();
-        return receiver.recv().unwrap();
-    }
-}
-
-pub trait Read {
-    fn read_packet(&mut self) -> Result<String, io::Error>;
-}
-
-pub trait Write {
-    fn write_packet(&self, packet: String) -> Result<(), io::Error>;
 }
 
 #[cfg(test)]
@@ -296,6 +309,13 @@ mod tests {
         }
     }
 
+    fn exit_notification() -> serde_json::Value {
+        return json!({
+            "jsonrpc": "2.0",
+            "method": "exit",
+        });
+    }
+
     fn create_client_and_server() -> (Client, Server<FakeReader, FakeWriter>) {
         let (writer_ch, writer) = FakeWriter::new();
         let (reader_ch, reader) = FakeReader::new();
@@ -310,12 +330,7 @@ mod tests {
     #[test]
     fn server_exits_after_exit_notification() {
         let (client, server) = create_client_and_server();
-        client
-            .send(json!({
-                "jsonrpc": "2.0",
-                "method": "exit",
-            }))
-            .unwrap();
+        client.send(exit_notification()).unwrap();
 
         assert_eq!(server.count(), 0);
     }
@@ -340,17 +355,9 @@ mod tests {
         let (client, mut server) = create_client_and_server();
 
         client.send(notification.clone()).unwrap();
-        client
-            .send(json!({
-                "jsonrpc": "2.0",
-                "method": "exit",
-            }))
-            .unwrap();
+        client.send(exit_notification()).unwrap();
 
-        let message = match server.next() {
-            Some(message) => message,
-            None => panic!("expected message, got None"),
-        };
+        let message = server.next().unwrap();
         match message {
             Message::Notification(n) => {
                 assert_eq!(n.method, "someMethod");
@@ -373,17 +380,9 @@ mod tests {
         let (client, mut server) = create_client_and_server();
 
         client.send(request.clone()).unwrap();
-        client
-            .send(json!({
-                "jsonrpc": "2.0",
-                "method": "exit",
-            }))
-            .unwrap();
+        client.send(exit_notification()).unwrap();
 
-        let message = match server.next() {
-            Some(message) => message,
-            None => panic!("expected message, got None"),
-        };
+        let message = server.next().unwrap();
         match message {
             Message::Request(r) => {
                 assert_eq!(r.method, "someMethod");
