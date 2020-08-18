@@ -30,7 +30,7 @@ pub enum Message {
 
 pub struct ResponseHandle {
     id: Id,
-    writer: Arc<Mutex<Write + Send>>,
+    writer: Arc<Mutex<dyn Write + Send>>,
 }
 
 impl ResponseHandle {
@@ -179,7 +179,7 @@ impl Counter {
 
 pub struct MySender {
     next_id: Arc<Mutex<Counter>>,
-    writer: Arc<Mutex<Write + Send>>,
+    writer: Arc<Mutex<dyn Write + Send>>,
     running_requests: Weak<Mutex<MyMap>>,
 }
 
