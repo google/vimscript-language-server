@@ -16,28 +16,42 @@ use crate::lexer::Lexer;
 use crate::lexer::TokenPosition;
 use crate::parser::Parser;
 use crate::server::Message;
+use crate::server::Request;
 use crate::server::LspSender;
 use crate::server::Read;
 use crate::server::Server;
 use crate::server::Write;
+use crate::rename::rename;
 use lsp_types::Diagnostic;
 use lsp_types::DiagnosticSeverity;
 use lsp_types::DidChangeTextDocumentParams;
 use lsp_types::DidOpenTextDocumentParams;
+use lsp_types::RenameParams;
 use lsp_types::Position;
 use lsp_types::PublishDiagnosticsParams;
+use lsp_types::WorkspaceEdit;
+
 use lsp_types::Range;
 use lsp_types::Url;
 use serde_json::json;
+use std::collections::HashMap;
 
 /// Runs the main loop of the LSP server.
 ///
 /// This method finishes when `exit` notification is received.
 pub fn run<R: Read, W: Write + Send + 'static>(server: Server<R, W>) {
-    let sender: LspSender = server.sender();
+    let mut state = State{
+        files: HashMap::new(),
+        sender: server.sender(),
+    };
     for msg in server {
-        handle_message(msg, &sender);
+        state.handle_message(msg);
     }
+}
+
+struct State {
+    files: HashMap<String, String>,
+    sender: LspSender,
 }
 
 fn token_position_to_range(position: &TokenPosition) -> Range {
@@ -53,40 +67,83 @@ fn token_position_to_range(position: &TokenPosition) -> Range {
     }
 }
 
-fn handle_message(msg: Message, sender: &LspSender) {
-    match msg {
-        Message::Request(req) => {
-            if req.method == "initialize" {
-                req.response_handle.respond(Ok(json!({"capabilities": {}})));
+impl State {
+    fn handle_message(&mut self, msg: Message) {
+        match msg {
+            Message::Request(req) => {
+                match req.method.as_ref() {
+                    "initialize" => {
+                        req.response_handle.respond(Ok(json!({"capabilities": {
+                            "renameProvider": true,
+                        }})));
+                    },
+                    "textDocument/rename" => {
+                        self.handle_rename(req);
+                    }
+                    method => {
+                        eprintln!("Unrecognized request: {}", method);
+                    }
+                }
             }
+            Message::Notification(notification) => match notification.method.as_ref() {
+                "initialized" => {},
+                "textDocument/didOpen" => {
+                    let params: DidOpenTextDocumentParams =
+                        serde_json::from_value(notification.params.clone()).unwrap();
+                    self.handle_did_open(params);
+                }
+                "textDocument/didChange" => {
+                    let params: DidChangeTextDocumentParams =
+                        serde_json::from_value(notification.params.clone()).unwrap();
+                    self.handle_did_change(params);
+                }
+                method => {
+                    eprintln!("Unrecognized notification: {}", method);
+                }
+            },
         }
-        Message::Notification(notification) => match notification.method.as_ref() {
-            "textDocument/didOpen" => {
-                let params: DidOpenTextDocumentParams =
-                    serde_json::from_value(notification.params.clone()).unwrap();
-                handle_did_open(params, sender);
-            }
-            "textDocument/didChange" => {
-                let params: DidChangeTextDocumentParams =
-                    serde_json::from_value(notification.params.clone()).unwrap();
-                handle_did_change(params, sender);
-            }
-            _ => {}
-        },
     }
-}
 
-fn handle_did_open(params: DidOpenTextDocumentParams, sender: &LspSender) {
-    publish_diagnostics(&params.text_document.text, params.text_document.uri, sender);
-}
+    fn handle_did_open(&mut self, params: DidOpenTextDocumentParams) {
+        self.files.insert(
+            params.text_document.uri.as_str().to_string(),
+            params.text_document.text.to_string());
 
-fn handle_did_change(params: DidChangeTextDocumentParams, sender: &LspSender) {
-    // TODO: this only works when we have one content change!
-    publish_diagnostics(
-        &params.content_changes[0].text,
-        params.text_document.uri,
-        sender,
-    );
+        publish_diagnostics(&params.text_document.text, params.text_document.uri, &self.sender);
+    }
+
+    fn handle_did_change(&mut self, params: DidChangeTextDocumentParams) {
+        // TODO: Add support for partial content changes
+        if params.content_changes.len() != 1 {
+            panic!("unsupported not one content changes");
+        }
+        if !params.content_changes[0].range.is_none() {
+            panic!("unsupported partial content change");
+        }
+        self.files.insert(
+            params.text_document.uri.as_str().to_string(),
+            params.content_changes[0].text.to_string());
+        publish_diagnostics(
+            &params.content_changes[0].text,
+            params.text_document.uri,
+            &self.sender,
+        );
+    }
+
+    fn handle_rename(&self, req: Request) {
+        // TODO: This doesn't work yet, it is still WIP!
+        let params: RenameParams = serde_json::from_value(req.params.clone()).unwrap();
+        let content = self.files.get(params.text_document.uri.as_str()).unwrap();
+        let edits = rename(content, params.position, &params.new_name).unwrap();
+        let mut changes = HashMap::new();
+        changes.insert(
+            params.text_document.uri,
+            edits);
+        req.response_handle.respond(Ok(serde_json::to_value(WorkspaceEdit{
+            changes: Some(changes),
+            document_changes: None,
+        }).unwrap()))
+    }
 }
 
 fn publish_diagnostics(text: &str, uri: Url, sender: &LspSender) {
