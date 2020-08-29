@@ -14,7 +14,6 @@
 
 use crate::lexer::TokenType;
 use crate::parser::if_statement::IfStatement;
-use crate::parser::return_statement::ReturnStatement;
 use crate::parser::set_statement::SetStatement;
 use crate::parser::try_statement::TryStatement;
 use crate::parser::while_statement::WhileStatement;
@@ -133,4 +132,18 @@ pub struct ForStatement {
 pub enum LoopVariable {
     Single(String),
     List(Vec<String>),
+}
+
+#[derive(PartialEq, Debug)]
+pub struct ReturnStatement {
+    pub value: Option<Expression>,
+}
+
+impl ReturnStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        match &self.value {
+            Some(value) => return json!({ "value": value.dump_for_testing() }),
+            None => return json!({}),
+        }
+    }
 }

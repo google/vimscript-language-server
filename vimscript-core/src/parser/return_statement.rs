@@ -12,23 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::parser::Expression;
+use crate::ast::ReturnStatement;
 use crate::parser::Parser;
-use serde_json::json;
-
-#[derive(PartialEq, Debug)]
-pub struct ReturnStatement {
-    value: Option<Expression>,
-}
-
-impl ReturnStatement {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        match &self.value {
-            Some(value) => return json!({ "value": value.dump_for_testing() }),
-            None => return json!({}),
-        }
-    }
-}
 
 pub fn parse(parser: &mut Parser) -> Option<ReturnStatement> {
     if Parser::end_of_statement_token(parser.peek_token().token_type) {
@@ -44,6 +29,7 @@ mod tests {
     use super::*;
     use crate::lexer::Lexer;
     use pretty_assertions::assert_eq;
+    use serde_json::json;
 
     #[test]
     fn parses_return_statement() {
