@@ -19,10 +19,16 @@ use crate::lexer::Token;
 use crate::lexer::TokenPosition;
 use crate::lexer::TokenType;
 use crate::ast::Statement;
+use crate::ast::BreakStatement;
+use crate::ast::CallStatement;
+use crate::ast::ExecuteStatement;
+use crate::ast::ForStatement;
+use crate::ast::FunctionStatement;
+use crate::ast::LetStatement;
+use crate::ast::LoopVariable;
 pub use crate::parser::expression::*;
 pub use crate::parser::if_statement::ElseCond;
 pub use crate::parser::if_statement::IfStatement;
-pub use crate::ast::LetStatement;
 use serde_json::json;
 
 pub mod expression;
@@ -49,72 +55,6 @@ impl Program {
             .map(|s| s.dump_for_testing())
             .collect::<Vec<serde_json::Value>>());
     }
-}
-
-
-#[derive(PartialEq, Debug)]
-pub struct CallStatement {
-    name: String,
-    pub arguments: Vec<Expression>,
-}
-
-impl CallStatement {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        return json!({
-            "method": self.name,
-            "arguments": self.arguments.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
-        });
-    }
-}
-
-#[derive(PartialEq, Debug)]
-pub struct BreakStatement {}
-
-impl BreakStatement {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        return json!({});
-    }
-}
-
-#[derive(PartialEq, Debug)]
-pub struct ExecuteStatement {
-    arguments: Vec<Expression>,
-}
-
-#[derive(PartialEq, Debug)]
-pub struct FunctionStatement {
-    pub name: String,
-    // TODO change to list of tokens?
-    arguments: Vec<String>,
-    pub body: Vec<Statement>,
-    // true if 'function!'
-    overwrite: bool,
-    abort: bool,
-}
-
-impl FunctionStatement {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        return json!({
-            "name": self.name,
-            "arguments": self.arguments,
-            "body": self.body.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
-            "overwrite": self.overwrite,
-            "abort": self.abort,
-        });
-    }
-}
-
-#[derive(PartialEq, Debug)]
-pub struct ForStatement {
-    loop_variable: LoopVariable,
-    range: Expression,
-    body: Vec<Statement>,
-}
-
-#[derive(PartialEq, Debug)]
-pub enum LoopVariable {
-    Single(String),
-    List(Vec<String>),
 }
 
 #[derive(PartialEq, Debug)]

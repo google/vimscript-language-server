@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::ast::FunctionStatement;
+use crate::ast::Statement;
+use crate::ast::LetStatement;
 use crate::parser::ElseCond;
 use crate::parser::Expression;
-use crate::parser::FunctionStatement;
 use crate::parser::IfStatement;
-use crate::parser::LetStatement;
 use crate::parser::Program;
-use crate::ast::Statement;
 
 pub fn format(program: &Program) -> String {
     let mut res = "".to_string();

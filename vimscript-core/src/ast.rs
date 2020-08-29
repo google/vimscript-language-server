@@ -13,11 +13,6 @@
 // limitations under the License.
 
 use crate::lexer::TokenType;
-use crate::parser::BreakStatement;
-use crate::parser::CallStatement;
-use crate::parser::ExecuteStatement;
-use crate::parser::ForStatement;
-use crate::parser::FunctionStatement;
 use crate::parser::Expression;
 use crate::parser::if_statement::IfStatement;
 use crate::parser::return_statement::ReturnStatement;
@@ -75,3 +70,67 @@ impl LetStatement {
     }
 }
 
+#[derive(PartialEq, Debug)]
+pub struct CallStatement {
+    pub name: String,
+    pub arguments: Vec<Expression>,
+}
+
+impl CallStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return json!({
+            "method": self.name,
+            "arguments": self.arguments.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
+        });
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct BreakStatement {}
+
+impl BreakStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return json!({});
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct ExecuteStatement {
+    pub arguments: Vec<Expression>,
+}
+
+#[derive(PartialEq, Debug)]
+pub struct FunctionStatement {
+    pub name: String,
+    // TODO change to list of tokens?
+    pub arguments: Vec<String>,
+    pub body: Vec<Statement>,
+    // true if 'function!'
+    pub overwrite: bool,
+    pub abort: bool,
+}
+
+impl FunctionStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return json!({
+            "name": self.name,
+            "arguments": self.arguments,
+            "body": self.body.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
+            "overwrite": self.overwrite,
+            "abort": self.abort,
+        });
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct ForStatement {
+    pub loop_variable: LoopVariable,
+    pub range: Expression,
+    pub body: Vec<Statement>,
+}
+
+#[derive(PartialEq, Debug)]
+pub enum LoopVariable {
+    Single(String),
+    List(Vec<String>),
+}
