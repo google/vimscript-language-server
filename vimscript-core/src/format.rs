@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::ast::ElseCond;
 use crate::ast::FunctionStatement;
+use crate::ast::IfStatement;
 use crate::ast::LetStatement;
 use crate::ast::Statement;
-use crate::parser::ElseCond;
 use crate::parser::Expression;
-use crate::parser::IfStatement;
 use crate::parser::Program;
 
 pub fn format(program: &Program) -> String {

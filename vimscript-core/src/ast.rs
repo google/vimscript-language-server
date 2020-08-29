@@ -13,10 +13,6 @@
 // limitations under the License.
 
 use crate::lexer::TokenType;
-use crate::parser::if_statement::IfStatement;
-use crate::parser::set_statement::SetStatement;
-use crate::parser::try_statement::TryStatement;
-use crate::parser::while_statement::WhileStatement;
 use crate::parser::Expression;
 use serde_json::json;
 
@@ -145,5 +141,98 @@ impl ReturnStatement {
             Some(value) => return json!({ "value": value.dump_for_testing() }),
             None => return json!({}),
         }
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct SetStatement {
+    pub option: String,
+    pub value: Option<String>,
+}
+
+impl SetStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return match self.value.as_ref() {
+            None => json!({"option": self.option}),
+            Some(value) => json!({"option": self.option, "value": value}),
+        };
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub enum ElseCond {
+    None,
+    Else(Vec<Statement>),
+    ElseIf(Box<IfStatement>),
+}
+
+impl ElseCond {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return match self {
+            ElseCond::None => serde_json::Value::Null,
+            ElseCond::Else(stmts) => serde_json::Value::Array(
+                stmts
+                    .iter()
+                    .map(|s| s.dump_for_testing())
+                    .collect::<Vec<serde_json::Value>>(),
+            ),
+            ElseCond::ElseIf(stmt) => stmt.dump_for_testing(),
+        };
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct IfStatement {
+    pub condition: Expression,
+    pub then: Vec<Statement>,
+    pub else_cond: ElseCond,
+}
+
+impl IfStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return json!({
+            "condition": self.condition.dump_for_testing(),
+            "then": self.then.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
+            "else": self.else_cond.dump_for_testing(),
+        });
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct TryStatement {
+    pub body: Vec<Statement>,
+    pub finally: Option<Vec<Statement>>,
+}
+
+impl TryStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        match self.finally.as_ref() {
+            None => {
+                return json!({
+                    "body": self.body.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
+                });
+            }
+            Some(f) => {
+                return json!({
+                    "body": self.body.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
+                    "finally": f.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
+                });
+            }
+        }
+    }
+}
+
+#[derive(PartialEq, Debug)]
+pub struct WhileStatement {
+    pub condition: Expression,
+    pub body: Vec<Statement>,
+}
+
+impl WhileStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return json!({
+            "condition": self.condition.dump_for_testing(),
+            "body": self.body.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
+        });
     }
 }

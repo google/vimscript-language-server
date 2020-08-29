@@ -12,50 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::ast::Statement;
+use crate::ast::ElseCond;
+use crate::ast::IfStatement;
 use crate::lexer::TokenType;
-use crate::parser::Expression;
 use crate::parser::Parser;
-use serde_json::json;
-
-#[derive(PartialEq, Debug)]
-pub enum ElseCond {
-    None,
-    Else(Vec<Statement>),
-    ElseIf(Box<IfStatement>),
-}
-
-impl ElseCond {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        return match self {
-            ElseCond::None => serde_json::Value::Null,
-            ElseCond::Else(stmts) => serde_json::Value::Array(
-                stmts
-                    .iter()
-                    .map(|s| s.dump_for_testing())
-                    .collect::<Vec<serde_json::Value>>(),
-            ),
-            ElseCond::ElseIf(stmt) => stmt.dump_for_testing(),
-        };
-    }
-}
-
-#[derive(PartialEq, Debug)]
-pub struct IfStatement {
-    pub condition: Expression,
-    pub then: Vec<Statement>,
-    pub else_cond: ElseCond,
-}
-
-impl IfStatement {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        return json!({
-            "condition": self.condition.dump_for_testing(),
-            "then": self.then.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
-            "else": self.else_cond.dump_for_testing(),
-        });
-    }
-}
 
 // Precondition - if was already read.
 //
@@ -107,6 +67,7 @@ mod tests {
     use super::*;
     use crate::lexer::Lexer;
     use pretty_assertions::assert_eq;
+    use serde_json::json;
 
     #[test]
     fn parses_if_statement() {

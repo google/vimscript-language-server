@@ -12,26 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::ast::WhileStatement;
 use crate::lexer::TokenType;
-use crate::parser::Expression;
 use crate::parser::Parser;
-use crate::parser::Statement;
-use serde_json::json;
-
-#[derive(PartialEq, Debug)]
-pub struct WhileStatement {
-    pub condition: Expression,
-    pub body: Vec<Statement>,
-}
-
-impl WhileStatement {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        return json!({
-            "condition": self.condition.dump_for_testing(),
-            "body": self.body.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
-        });
-    }
-}
 
 // Precondition - `while` token was already read.
 pub fn parse(parser: &mut Parser) -> Option<WhileStatement> {
@@ -49,6 +32,7 @@ mod tests {
     use super::*;
     use crate::lexer::Lexer;
     use pretty_assertions::assert_eq;
+    use serde_json::json;
 
     #[test]
     fn parses_while_statement() {

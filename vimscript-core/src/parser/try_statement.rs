@@ -12,34 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::ast::TryStatement;
 use crate::lexer::TokenType;
 use crate::parser::Parser;
 use crate::parser::Statement;
-use serde_json::json;
-
-#[derive(PartialEq, Debug)]
-pub struct TryStatement {
-    body: Vec<Statement>,
-    finally: Option<Vec<Statement>>,
-}
-
-impl TryStatement {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        match self.finally.as_ref() {
-            None => {
-                return json!({
-                    "body": self.body.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
-                });
-            }
-            Some(f) => {
-                return json!({
-                    "body": self.body.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
-                    "finally": f.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
-                });
-            }
-        }
-    }
-}
 
 pub fn parse(parser: &mut Parser) -> Option<TryStatement> {
     parser.expect_end_of_statement()?;
@@ -91,6 +67,7 @@ mod tests {
     use super::*;
     use crate::lexer::Lexer;
     use pretty_assertions::assert_eq;
+    use serde_json::json;
 
     #[test]
     fn parses_try_statement() {

@@ -12,24 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::ast::SetStatement;
 use crate::lexer::TokenType;
 use crate::parser::Parser;
-use serde_json::json;
-
-#[derive(PartialEq, Debug)]
-pub struct SetStatement {
-    option: String,
-    value: Option<String>,
-}
-
-impl SetStatement {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        return match self.value.as_ref() {
-            None => json!({"option": self.option}),
-            Some(value) => json!({"option": self.option, "value": value}),
-        };
-    }
-}
 
 pub fn parse(parser: &mut Parser) -> Option<SetStatement> {
     let option = parser.expect_identifier()?;
@@ -54,6 +39,7 @@ mod tests {
     use super::*;
     use crate::lexer::Lexer;
     use pretty_assertions::assert_eq;
+    use serde_json::json;
 
     #[test]
     fn parses_set_statement() {
