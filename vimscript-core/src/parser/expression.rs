@@ -383,9 +383,9 @@ fn parse_array_subscript(parser: &mut Parser) -> Option<ArraySubscript> {
         return Some(ArraySubscript::Sublist(Sublist {
             left: left,
             right: right,
-        }))
+        }));
     }
-    return Some(ArraySubscript::Index(left?))
+    return Some(ArraySubscript::Index(left?));
 }
 
 fn parse_dictionary_entry(parser: &mut Parser) -> Option<DictionaryEntry> {

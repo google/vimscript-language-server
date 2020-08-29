@@ -12,13 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::lexer::Lexer;
-use crate::lexer::SourceLocation;
-use crate::lexer::SourcePosition;
-use crate::lexer::Token;
-use crate::lexer::TokenPosition;
-use crate::lexer::TokenType;
-use crate::ast::Statement;
 use crate::ast::BreakStatement;
 use crate::ast::CallStatement;
 use crate::ast::ExecuteStatement;
@@ -26,6 +19,13 @@ use crate::ast::ForStatement;
 use crate::ast::FunctionStatement;
 use crate::ast::LetStatement;
 use crate::ast::LoopVariable;
+use crate::ast::Statement;
+use crate::lexer::Lexer;
+use crate::lexer::SourceLocation;
+use crate::lexer::SourcePosition;
+use crate::lexer::Token;
+use crate::lexer::TokenPosition;
+use crate::lexer::TokenType;
 pub use crate::parser::expression::*;
 pub use crate::parser::if_statement::ElseCond;
 pub use crate::parser::if_statement::IfStatement;

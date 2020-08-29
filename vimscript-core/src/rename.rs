@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::ast::Statement;
 use crate::lexer::Lexer;
 use crate::lexer::SourcePosition;
 use crate::lexer::TokenPosition;
@@ -19,7 +20,6 @@ use crate::lexer::TokenType;
 use crate::parser::Expression;
 use crate::parser::Parser;
 use crate::parser::Program;
-use crate::ast::Statement;
 use lsp_types::Position;
 use lsp_types::Range;
 use lsp_types::TextEdit;

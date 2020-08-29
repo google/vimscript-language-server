@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub mod ast;
 pub mod format;
 pub mod lexer;
 pub mod lsp;
-pub mod ast;
 pub mod parser;
 mod peekable_chars_with_position;
 pub mod protocol;

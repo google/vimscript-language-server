@@ -13,12 +13,12 @@
 // limitations under the License.
 
 use crate::lexer::TokenType;
-use crate::parser::Expression;
 use crate::parser::if_statement::IfStatement;
 use crate::parser::return_statement::ReturnStatement;
 use crate::parser::set_statement::SetStatement;
 use crate::parser::try_statement::TryStatement;
 use crate::parser::while_statement::WhileStatement;
+use crate::parser::Expression;
 use serde_json::json;
 
 #[derive(PartialEq, Debug)]

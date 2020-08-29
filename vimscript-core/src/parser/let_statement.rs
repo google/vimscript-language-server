@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::lexer::TokenType;
 use crate::ast::LetStatement;
+use crate::lexer::TokenType;
 use crate::parser::ParseError;
 use crate::parser::Parser;
 

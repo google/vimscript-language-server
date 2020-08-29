@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use crate::ast::FunctionStatement;
-use crate::ast::Statement;
 use crate::ast::LetStatement;
+use crate::ast::Statement;
 use crate::parser::ElseCond;
 use crate::parser::Expression;
 use crate::parser::IfStatement;

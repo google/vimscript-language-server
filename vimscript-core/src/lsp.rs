@@ -15,20 +15,20 @@
 use crate::lexer::Lexer;
 use crate::lexer::TokenPosition;
 use crate::parser::Parser;
-use crate::server::Message;
-use crate::server::Request;
+use crate::rename::rename;
 use crate::server::LspSender;
+use crate::server::Message;
 use crate::server::Read;
+use crate::server::Request;
 use crate::server::Server;
 use crate::server::Write;
-use crate::rename::rename;
 use lsp_types::Diagnostic;
 use lsp_types::DiagnosticSeverity;
 use lsp_types::DidChangeTextDocumentParams;
 use lsp_types::DidOpenTextDocumentParams;
-use lsp_types::RenameParams;
 use lsp_types::Position;
 use lsp_types::PublishDiagnosticsParams;
+use lsp_types::RenameParams;
 use lsp_types::WorkspaceEdit;
 
 use lsp_types::Range;
@@ -40,7 +40,7 @@ use std::collections::HashMap;
 ///
 /// This method finishes when `exit` notification is received.
 pub fn run<R: Read, W: Write + Send + 'static>(server: Server<R, W>) {
-    let mut state = State{
+    let mut state = State {
         files: HashMap::new(),
         sender: server.sender(),
     };
@@ -70,23 +70,21 @@ fn token_position_to_range(position: &TokenPosition) -> Range {
 impl State {
     fn handle_message(&mut self, msg: Message) {
         match msg {
-            Message::Request(req) => {
-                match req.method.as_ref() {
-                    "initialize" => {
-                        req.response_handle.respond(Ok(json!({"capabilities": {
-                            "renameProvider": true,
-                        }})));
-                    },
-                    "textDocument/rename" => {
-                        self.handle_rename(req);
-                    }
-                    method => {
-                        eprintln!("Unrecognized request: {}", method);
-                    }
+            Message::Request(req) => match req.method.as_ref() {
+                "initialize" => {
+                    req.response_handle.respond(Ok(json!({"capabilities": {
+                        "renameProvider": true,
+                    }})));
                 }
-            }
+                "textDocument/rename" => {
+                    self.handle_rename(req);
+                }
+                method => {
+                    eprintln!("Unrecognized request: {}", method);
+                }
+            },
             Message::Notification(notification) => match notification.method.as_ref() {
-                "initialized" => {},
+                "initialized" => {}
                 "textDocument/didOpen" => {
                     let params: DidOpenTextDocumentParams =
                         serde_json::from_value(notification.params.clone()).unwrap();
@@ -107,9 +105,14 @@ impl State {
     fn handle_did_open(&mut self, params: DidOpenTextDocumentParams) {
         self.files.insert(
             params.text_document.uri.as_str().to_string(),
-            params.text_document.text.to_string());
+            params.text_document.text.to_string(),
+        );
 
-        publish_diagnostics(&params.text_document.text, params.text_document.uri, &self.sender);
+        publish_diagnostics(
+            &params.text_document.text,
+            params.text_document.uri,
+            &self.sender,
+        );
     }
 
     fn handle_did_change(&mut self, params: DidChangeTextDocumentParams) {
@@ -122,7 +125,8 @@ impl State {
         }
         self.files.insert(
             params.text_document.uri.as_str().to_string(),
-            params.content_changes[0].text.to_string());
+            params.content_changes[0].text.to_string(),
+        );
         publish_diagnostics(
             &params.content_changes[0].text,
             params.text_document.uri,
@@ -136,13 +140,13 @@ impl State {
         let content = self.files.get(params.text_document.uri.as_str()).unwrap();
         let edits = rename(content, params.position, &params.new_name).unwrap();
         let mut changes = HashMap::new();
-        changes.insert(
-            params.text_document.uri,
-            edits);
-        req.response_handle.respond(Ok(serde_json::to_value(WorkspaceEdit{
-            changes: Some(changes),
-            document_changes: None,
-        }).unwrap()))
+        changes.insert(params.text_document.uri, edits);
+        req.response_handle
+            .respond(Ok(serde_json::to_value(WorkspaceEdit {
+                changes: Some(changes),
+                document_changes: None,
+            })
+            .unwrap()))
     }
 }
 
