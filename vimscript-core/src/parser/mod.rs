@@ -18,24 +18,21 @@ use crate::lexer::SourcePosition;
 use crate::lexer::Token;
 use crate::lexer::TokenPosition;
 use crate::lexer::TokenType;
+use crate::ast::Statement;
 pub use crate::parser::expression::*;
 pub use crate::parser::if_statement::ElseCond;
 pub use crate::parser::if_statement::IfStatement;
 pub use crate::parser::let_statement::LetStatement;
-use crate::parser::return_statement::ReturnStatement;
-use crate::parser::set_statement::SetStatement;
-use crate::parser::try_statement::TryStatement;
-use crate::parser::while_statement::WhileStatement;
 use serde_json::json;
 
 pub mod expression;
 
-mod if_statement;
-mod let_statement;
-mod return_statement;
-mod set_statement;
-mod try_statement;
-mod while_statement;
+pub mod if_statement;
+pub mod let_statement;
+pub mod return_statement;
+pub mod set_statement;
+pub mod try_statement;
+pub mod while_statement;
 use std::iter::Iterator;
 use std::iter::Peekable;
 
@@ -54,37 +51,6 @@ impl Program {
     }
 }
 
-#[derive(PartialEq, Debug)]
-pub enum Statement {
-    Let(LetStatement),
-    Call(CallStatement),
-    Execute(ExecuteStatement),
-    Return(ReturnStatement),
-    If(IfStatement),
-    While(WhileStatement),
-    Function(FunctionStatement),
-    For(ForStatement),
-    Try(TryStatement),
-    Set(SetStatement),
-    Break(BreakStatement),
-}
-
-impl Statement {
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        return match &self {
-            Statement::Let(x) => json!({ "let": x.dump_for_testing() }),
-            Statement::If(x) => json!({ "if": x.dump_for_testing() }),
-            Statement::Call(x) => json!({ "call": x.dump_for_testing() }),
-            Statement::Return(x) => json!({ "return": x.dump_for_testing() }),
-            Statement::While(x) => json!({ "while": x.dump_for_testing() }),
-            Statement::Function(x) => json!({ "function": x.dump_for_testing() }),
-            Statement::Try(x) => json!({ "try": x.dump_for_testing() }),
-            Statement::Set(x) => json!({ "set": x.dump_for_testing() }),
-            Statement::Break(x) => json!({ "break": x.dump_for_testing() }),
-            _ => json!({}),
-        };
-    }
-}
 
 #[derive(PartialEq, Debug)]
 pub struct CallStatement {

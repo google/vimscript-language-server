@@ -19,7 +19,7 @@ use crate::lexer::TokenType;
 use crate::parser::Expression;
 use crate::parser::Parser;
 use crate::parser::Program;
-use crate::parser::Statement;
+use crate::ast::Statement;
 use lsp_types::Position;
 use lsp_types::Range;
 use lsp_types::TextEdit;

@@ -12,10 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::lexer::Lexer;
 use crate::lexer::Token;
-use crate::lexer::TokenType;
-use std::iter::IntoIterator;
 
 pub struct TokenIterator {
     index: usize,
@@ -55,6 +52,9 @@ impl TokenIterator {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    use crate::lexer::Lexer;
+    use crate::lexer::TokenType;
 
     #[test]
     fn next_returns_eof_for_empty_iterator() {

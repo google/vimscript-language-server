@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use crate::lexer::TokenType;
-use crate::parser::Expression;
 use crate::parser::Parser;
 use serde_json::json;
 

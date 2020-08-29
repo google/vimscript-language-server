@@ -15,6 +15,7 @@
 pub mod format;
 pub mod lexer;
 pub mod lsp;
+pub mod ast;
 pub mod parser;
 mod peekable_chars_with_position;
 pub mod protocol;

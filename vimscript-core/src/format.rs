@@ -18,7 +18,7 @@ use crate::parser::FunctionStatement;
 use crate::parser::IfStatement;
 use crate::parser::LetStatement;
 use crate::parser::Program;
-use crate::parser::Statement;
+use crate::ast::Statement;
 
 pub fn format(program: &Program) -> String {
     let mut res = "".to_string();

@@ -15,7 +15,7 @@
 use crate::lexer::TokenType;
 use crate::parser::Expression;
 use crate::parser::Parser;
-use crate::parser::Statement;
+use crate::ast::Statement;
 use serde_json::json;
 
 #[derive(PartialEq, Debug)]
