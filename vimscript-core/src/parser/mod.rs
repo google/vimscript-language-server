@@ -22,7 +22,7 @@ use crate::ast::Statement;
 pub use crate::parser::expression::*;
 pub use crate::parser::if_statement::ElseCond;
 pub use crate::parser::if_statement::IfStatement;
-pub use crate::parser::let_statement::LetStatement;
+pub use crate::ast::LetStatement;
 use serde_json::json;
 
 pub mod expression;

@@ -70,11 +70,11 @@ fn format_let_statement(stmt: &LetStatement, spaces: usize) -> String {
     let mut s = String::new();
     s.push_str(&" ".repeat(spaces * 4));
     s.push_str("let ");
-    s.push_str(&format_expression(&stmt.var()));
+    s.push_str(&format_expression(&stmt.var));
     s.push_str(" ");
-    s.push_str(stmt.operator().to_str());
+    s.push_str(stmt.operator.to_str());
     s.push_str(" ");
-    s.push_str(&format_expression(&stmt.value()));
+    s.push_str(&format_expression(&stmt.value));
     s.push_str("\n");
     return s;
 }

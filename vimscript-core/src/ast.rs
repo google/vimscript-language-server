@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::lexer::TokenType;
 use crate::parser::BreakStatement;
 use crate::parser::CallStatement;
 use crate::parser::ExecuteStatement;
 use crate::parser::ForStatement;
 use crate::parser::FunctionStatement;
+use crate::parser::Expression;
 use crate::parser::if_statement::IfStatement;
-use crate::parser::let_statement::LetStatement;
 use crate::parser::return_statement::ReturnStatement;
 use crate::parser::set_statement::SetStatement;
 use crate::parser::try_statement::TryStatement;
@@ -56,3 +57,21 @@ impl Statement {
         };
     }
 }
+
+#[derive(PartialEq, Debug)]
+pub struct LetStatement {
+    pub var: Expression,
+    pub operator: TokenType,
+    pub value: Expression,
+}
+
+impl LetStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return json!({
+            "var": self.var.dump_for_testing(),
+            "operator": self.operator.as_str(),
+            "value": self.value.dump_for_testing(),
+        });
+    }
+}
+

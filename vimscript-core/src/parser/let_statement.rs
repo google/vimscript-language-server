@@ -13,36 +13,9 @@
 // limitations under the License.
 
 use crate::lexer::TokenType;
-use crate::parser::Expression;
+use crate::ast::LetStatement;
 use crate::parser::ParseError;
 use crate::parser::Parser;
-use serde_json::json;
-
-#[derive(PartialEq, Debug)]
-pub struct LetStatement {
-    var: Expression,
-    operator: TokenType,
-    value: Expression,
-}
-
-impl LetStatement {
-    pub fn var(&self) -> &Expression {
-        return &self.var;
-    }
-    pub fn value(&self) -> &Expression {
-        return &self.value;
-    }
-    pub fn operator(&self) -> &TokenType {
-        return &self.operator;
-    }
-    pub fn dump_for_testing(&self) -> serde_json::Value {
-        return json!({
-            "var": self.var.dump_for_testing(),
-            "operator": self.operator.as_str(),
-            "value": self.value.dump_for_testing(),
-        });
-    }
-}
 
 fn is_assign_operator(token_type: TokenType) -> bool {
     match token_type {
@@ -98,6 +71,7 @@ mod tests {
     use crate::parser::ParseError;
     use crate::parser::Statement;
     use pretty_assertions::assert_eq;
+    use serde_json::json;
 
     #[test]
     fn parses_simple_let_statement() {
@@ -151,7 +125,7 @@ mod tests {
             stmt => panic!(format!("expected let statement, got {:?}", stmt)),
         };
         // assert_eq!(let_stmt.name(), "l:var");
-        assert_eq!(let_stmt.value().to_string(), "15");
+        assert_eq!(let_stmt.value.to_string(), "15");
         // assert_eq!(
         //     parser
         //         .resolve_location(let_stmt.name_location().clone())
@@ -208,7 +182,7 @@ mod tests {
             stmt => panic!(format!("expected let statement, got {:?}", stmt)),
         };
         // assert_eq!(let_stmt.name(), "l:var");
-        assert_eq!(let_stmt.value().to_string(), "15");
+        assert_eq!(let_stmt.value.to_string(), "15");
     }
 
     #[test]
