@@ -16,6 +16,7 @@ use crate::ast::ElseCond;
 use crate::ast::FunctionStatement;
 use crate::ast::IfStatement;
 use crate::ast::LetStatement;
+use crate::ast::ReturnStatement;
 use crate::ast::Statement;
 use crate::parser::Expression;
 use crate::parser::Program;
@@ -33,13 +34,14 @@ fn format_statement(stmt: &Statement, spaces: usize) -> String {
         Statement::Function(s) => format_statement_function(s, spaces),
         Statement::If(s) => format_if_statement(s, spaces),
         Statement::Let(s) => format_let_statement(s, spaces),
-        _ => "<unknown statement>\n".to_string(),
+        Statement::Return(s) => format_return_statement(s, spaces),
+        _ => panic!("some statement is not supported by formatter yet"),
     };
 }
 
 fn format_statement_function(stmt: &FunctionStatement, spaces: usize) -> String {
     let mut s = String::new();
-    s.push_str(&" ".repeat(spaces * 4));
+    s.push_str(&" ".repeat(spaces * 2));
     s.push_str("function ");
     s.push_str(&stmt.name);
     s.push_str("()\n");
@@ -53,7 +55,7 @@ fn format_statement_function(stmt: &FunctionStatement, spaces: usize) -> String 
             .join(""),
     );
 
-    s.push_str(&" ".repeat(spaces * 4));
+    s.push_str(&" ".repeat(spaces * 2));
     s.push_str("endfunction\n");
     return s;
 }
@@ -68,7 +70,7 @@ fn format_expression(expr: &Expression) -> String {
 
 fn format_let_statement(stmt: &LetStatement, spaces: usize) -> String {
     let mut s = String::new();
-    s.push_str(&" ".repeat(spaces * 4));
+    s.push_str(&" ".repeat(spaces * 2));
     s.push_str("let ");
     s.push_str(&format_expression(&stmt.var));
     s.push_str(" ");
@@ -79,9 +81,17 @@ fn format_let_statement(stmt: &LetStatement, spaces: usize) -> String {
     return s;
 }
 
+fn format_return_statement(stmt: &ReturnStatement, spaces: usize) -> String {
+    let mut s = String::new();
+    s.push_str(&" ".repeat(spaces * 2));
+    s.push_str("return");
+    s.push_str("\n");
+    return s;
+}
+
 fn format_if_statement(stmt: &IfStatement, spaces: usize) -> String {
     let mut s = String::new();
-    s.push_str(&" ".repeat(spaces * 4));
+    s.push_str(&" ".repeat(spaces * 2));
     s.push_str("if ");
     s.push_str(&format_expression(&stmt.condition));
     s.push_str("\n");
@@ -97,7 +107,7 @@ fn format_if_statement_internal(stmt: &IfStatement, spaces: usize) -> String {
     }
     match &stmt.else_cond {
         ElseCond::Else(stmts) => {
-            s.push_str(&" ".repeat(spaces * 4));
+            s.push_str(&" ".repeat(spaces * 2));
             s.push_str("else");
             s.push_str("\n");
             for st in stmts.iter() {
@@ -112,100 +122,6 @@ fn format_if_statement_internal(stmt: &IfStatement, spaces: usize) -> String {
         }
         _ => {}
     }
-    s.push_str(&" ".repeat(spaces * 4));
+    s.push_str(&" ".repeat(spaces * 2));
     return s;
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::lexer::Lexer;
-    use crate::parser::Parser;
-    use pretty_assertions::assert_eq;
-
-    #[test]
-    fn formats_functions() {
-        let mut parser = Parser::new(Lexer::new(
-            r#"   function    Test(   )
-let    l:x=1
-  endfunction"#,
-        ));
-        let program = parser.parse();
-        let formatted = format(&program);
-        assert_eq!(
-            formatted,
-            r#"function Test()
-    let l:x = 1
-endfunction
-"#
-        );
-    }
-
-    #[test]
-    fn formats_if_statements() {
-        let mut parser = Parser::new(Lexer::new(
-            r#"
-  if l:ver
-let    l:x=1
-    endif
-  "#,
-        ));
-        let program = parser.parse();
-        let formatted = format(&program);
-        assert_eq!(
-            formatted,
-            r#"if l:ver
-    let l:x = 1
-endif
-"#
-        );
-    }
-
-    #[test]
-    fn formats_if_statements_with_else() {
-        let mut parser = Parser::new(Lexer::new(
-            r#"
-  if l:ver
-let    l:x=1
-else
-let    l:x=2
-    endif
-  "#,
-        ));
-        let program = parser.parse();
-        let formatted = format(&program);
-        assert_eq!(
-            formatted,
-            r#"if l:ver
-    let l:x = 1
-else
-    let l:x = 2
-endif
-"#
-        );
-    }
-
-    #[test]
-    fn formats_if_statements_with_elseif() {
-        let mut parser = Parser::new(Lexer::new(
-            r#"
-  if l:ver
-let    l:x=1
-  elseif   l:ver2
-let    l:x=2
-    endif
-  "#,
-        ));
-        let program = parser.parse();
-        let formatted = format(&program);
-        assert_eq!(
-            formatted,
-            r#"if l:ver
-    let l:x = 1
-elseif l:ver2
-    let l:x = 2
-endif
-"#
-        );
-    }
 }
