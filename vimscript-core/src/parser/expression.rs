@@ -16,9 +16,10 @@ use crate::lexer::SourceLocation;
 
 use crate::lexer::TokenType;
 use crate::parser::Parser;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum Expression {
     Identifier(IdentifierExpression),
     Number(NumberExpression),
@@ -58,7 +59,7 @@ impl Expression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IdentifierExpression {
     pub name: String,
     pub name_location: SourceLocation,
@@ -76,7 +77,7 @@ impl IdentifierExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct StringLiteralExpression {
     pub value: String,
 }
@@ -87,7 +88,7 @@ impl StringLiteralExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ParenExpression {
     pub expr: Box<Expression>,
 }
@@ -98,7 +99,7 @@ impl ParenExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ChooseExpression {
     pub cond: Box<Expression>,
     pub lhs: Box<Expression>,
@@ -115,7 +116,7 @@ impl ChooseExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct UnaryExpression {
     pub operator: TokenType,
     pub expr: Box<Expression>,
@@ -130,7 +131,7 @@ impl UnaryExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct InfixExpression {
     pub left: Box<Expression>,
     pub operator: TokenType,
@@ -147,7 +148,7 @@ impl InfixExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FunctionExpression {
     pub callee: Box<Expression>,
     pub arguments: Vec<Expression>,
@@ -162,7 +163,7 @@ impl FunctionExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct NumberExpression {
     pub value: f64,
 }
@@ -176,7 +177,7 @@ impl NumberExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum ArraySubscript {
     Index(Expression),
     Sublist(Sublist),
@@ -191,7 +192,7 @@ impl ArraySubscript {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Sublist {
     pub left: Option<Expression>,
     pub right: Option<Expression>,
@@ -216,7 +217,7 @@ impl Sublist {
 }
 
 // Represents `base[idx]`
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ArraySubscriptExpression {
     pub base: Box<Expression>,
     pub idx: Box<ArraySubscript>,
@@ -231,7 +232,7 @@ impl ArraySubscriptExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ArrayExpression {
     elements: Vec<Expression>,
 }
@@ -244,7 +245,7 @@ impl ArrayExpression {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 struct DictionaryEntry {
     key: String,
     value: Expression,
@@ -259,7 +260,7 @@ impl DictionaryEntry {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct DictionaryExpression {
     entries: Vec<DictionaryEntry>,
 }

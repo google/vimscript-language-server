@@ -14,10 +14,10 @@
 
 use crate::lexer::TokenType;
 use crate::parser::Expression;
-use serde_json::json;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum StmtKind {
     Let(LetStatement),
     Call(CallStatement),
@@ -49,7 +49,7 @@ impl StmtKind {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct LetStatement {
     pub var: Box<Expression>,
     pub operator: TokenType,
@@ -66,7 +66,7 @@ impl LetStatement {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct CallStatement {
     pub name: String,
     pub arguments: Vec<Expression>,
@@ -81,7 +81,7 @@ impl CallStatement {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct BreakStatement {}
 
 impl BreakStatement {
@@ -90,12 +90,12 @@ impl BreakStatement {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteStatement {
     pub arguments: Vec<Expression>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FunctionStatement {
     pub name: String,
     // TODO change to list of tokens?
@@ -118,7 +118,7 @@ impl FunctionStatement {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ForStatement {
     pub loop_variable: LoopVariable,
     pub range: Expression,
@@ -131,7 +131,7 @@ pub enum LoopVariable {
     List(Vec<String>),
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ReturnStatement {
     pub value: Option<Expression>,
 }
@@ -153,11 +153,11 @@ pub struct SetStatement {
 
 impl SetStatement {
     pub fn dump_for_testing(&self) -> serde_json::Value {
-        return json!(self)
+        return json!(self);
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum ElseCond {
     None,
     Else(Vec<StmtKind>),
@@ -179,7 +179,7 @@ impl ElseCond {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IfStatement {
     pub condition: Expression,
     pub then: Vec<StmtKind>,
@@ -196,7 +196,7 @@ impl IfStatement {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TryStatement {
     pub body: Vec<StmtKind>,
     pub finally: Option<Vec<StmtKind>>,
@@ -220,7 +220,7 @@ impl TryStatement {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct WhileStatement {
     pub condition: Expression,
     pub body: Vec<StmtKind>,

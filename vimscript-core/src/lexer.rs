@@ -13,9 +13,10 @@
 // limitations under the License.
 
 use crate::peekable_chars_with_position::PeekableCharsWithPosition;
+use serde::{Deserialize, Serialize};
 use std::fmt;
 
-#[derive(PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum TokenType {
     Let,
     Assign,
@@ -240,7 +241,7 @@ impl TokenType {
 }
 
 /// Location in a source code (most of the time points to the start of the token).
-#[derive(PartialEq, Debug, Clone)]
+#[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct SourceLocation {
     range: std::ops::Range<usize>,
 }
