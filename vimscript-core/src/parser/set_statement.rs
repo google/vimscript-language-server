@@ -40,6 +40,7 @@ mod tests {
     use crate::lexer::Lexer;
     use pretty_assertions::assert_eq;
     use serde_json::json;
+    use serde_json::Value;
 
     #[test]
     fn parses_set_statement() {
@@ -48,7 +49,7 @@ mod tests {
         assert_eq!(parser.errors, &[]);
         assert_eq!(
             program.dump_for_testing(),
-            json!([{"set": {"option": "paste"}}])
+            json!([{"set": {"option": "paste", "value": Value::Null}}])
         );
     }
 

@@ -15,6 +15,7 @@
 use crate::lexer::TokenType;
 use crate::parser::Expression;
 use serde_json::json;
+use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug)]
 pub enum StmtKind {
@@ -124,7 +125,7 @@ pub struct ForStatement {
     pub body: Vec<StmtKind>,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum LoopVariable {
     Single(String),
     List(Vec<String>),
@@ -144,7 +145,7 @@ impl ReturnStatement {
     }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct SetStatement {
     pub option: String,
     pub value: Option<String>,
@@ -152,10 +153,7 @@ pub struct SetStatement {
 
 impl SetStatement {
     pub fn dump_for_testing(&self) -> serde_json::Value {
-        return match self.value.as_ref() {
-            None => json!({"option": self.option}),
-            Some(value) => json!({"option": self.option, "value": value}),
-        };
+        return json!(self)
     }
 }
 
