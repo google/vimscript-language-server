@@ -17,7 +17,7 @@ use crate::parser::Expression;
 use serde_json::json;
 
 #[derive(PartialEq, Debug)]
-pub enum Statement {
+pub enum StmtKind {
     Let(LetStatement),
     Call(CallStatement),
     Execute(ExecuteStatement),
@@ -31,18 +31,18 @@ pub enum Statement {
     Break(BreakStatement),
 }
 
-impl Statement {
+impl StmtKind {
     pub fn dump_for_testing(&self) -> serde_json::Value {
         return match &self {
-            Statement::Let(x) => json!({ "let": x.dump_for_testing() }),
-            Statement::If(x) => json!({ "if": x.dump_for_testing() }),
-            Statement::Call(x) => json!({ "call": x.dump_for_testing() }),
-            Statement::Return(x) => json!({ "return": x.dump_for_testing() }),
-            Statement::While(x) => json!({ "while": x.dump_for_testing() }),
-            Statement::Function(x) => json!({ "function": x.dump_for_testing() }),
-            Statement::Try(x) => json!({ "try": x.dump_for_testing() }),
-            Statement::Set(x) => json!({ "set": x.dump_for_testing() }),
-            Statement::Break(x) => json!({ "break": x.dump_for_testing() }),
+            StmtKind::Let(x) => json!({ "let": x.dump_for_testing() }),
+            StmtKind::If(x) => json!({ "if": x.dump_for_testing() }),
+            StmtKind::Call(x) => json!({ "call": x.dump_for_testing() }),
+            StmtKind::Return(x) => json!({ "return": x.dump_for_testing() }),
+            StmtKind::While(x) => json!({ "while": x.dump_for_testing() }),
+            StmtKind::Function(x) => json!({ "function": x.dump_for_testing() }),
+            StmtKind::Try(x) => json!({ "try": x.dump_for_testing() }),
+            StmtKind::Set(x) => json!({ "set": x.dump_for_testing() }),
+            StmtKind::Break(x) => json!({ "break": x.dump_for_testing() }),
             _ => json!({}),
         };
     }
@@ -99,7 +99,7 @@ pub struct FunctionStatement {
     pub name: String,
     // TODO change to list of tokens?
     pub arguments: Vec<String>,
-    pub body: Vec<Statement>,
+    pub body: Vec<StmtKind>,
     // true if 'function!'
     pub overwrite: bool,
     pub abort: bool,
@@ -121,7 +121,7 @@ impl FunctionStatement {
 pub struct ForStatement {
     pub loop_variable: LoopVariable,
     pub range: Expression,
-    pub body: Vec<Statement>,
+    pub body: Vec<StmtKind>,
 }
 
 #[derive(PartialEq, Debug)]
@@ -162,7 +162,7 @@ impl SetStatement {
 #[derive(PartialEq, Debug)]
 pub enum ElseCond {
     None,
-    Else(Vec<Statement>),
+    Else(Vec<StmtKind>),
     ElseIf(Box<IfStatement>),
 }
 
@@ -184,7 +184,7 @@ impl ElseCond {
 #[derive(PartialEq, Debug)]
 pub struct IfStatement {
     pub condition: Expression,
-    pub then: Vec<Statement>,
+    pub then: Vec<StmtKind>,
     pub else_cond: ElseCond,
 }
 
@@ -200,8 +200,8 @@ impl IfStatement {
 
 #[derive(PartialEq, Debug)]
 pub struct TryStatement {
-    pub body: Vec<Statement>,
-    pub finally: Option<Vec<Statement>>,
+    pub body: Vec<StmtKind>,
+    pub finally: Option<Vec<StmtKind>>,
 }
 
 impl TryStatement {
@@ -225,7 +225,7 @@ impl TryStatement {
 #[derive(PartialEq, Debug)]
 pub struct WhileStatement {
     pub condition: Expression,
-    pub body: Vec<Statement>,
+    pub body: Vec<StmtKind>,
 }
 
 impl WhileStatement {

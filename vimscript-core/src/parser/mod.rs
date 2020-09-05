@@ -20,7 +20,7 @@ use crate::ast::FunctionStatement;
 use crate::ast::IfStatement;
 use crate::ast::LetStatement;
 use crate::ast::LoopVariable;
-use crate::ast::Statement;
+use crate::ast::StmtKind;
 use crate::lexer::Lexer;
 use crate::lexer::SourceLocation;
 use crate::lexer::SourcePosition;
@@ -43,7 +43,7 @@ use std::iter::Peekable;
 
 #[derive(PartialEq, Debug)]
 pub struct Program {
-    pub statements: Vec<Statement>,
+    pub statements: Vec<StmtKind>,
 }
 
 impl Program {
@@ -109,57 +109,57 @@ impl<'a> Parser<'a> {
 
     // Parses a statement, including the new line at the end of statement.
     // Returns None when statement failed to parse.
-    fn parse_statement(&mut self) -> Option<Statement> {
+    fn parse_statement(&mut self) -> Option<StmtKind> {
         let token = self.lexer.next()?;
         match token.token_type {
             TokenType::Let => {
                 if let Some(stmt) = self.parse_let_statement() {
-                    return Some(Statement::Let(stmt));
+                    return Some(StmtKind::Let(stmt));
                 }
             }
             TokenType::Break => {
                 self.expect_end_of_statement()?;
-                return Some(Statement::Break(BreakStatement {}));
+                return Some(StmtKind::Break(BreakStatement {}));
             }
             TokenType::Call => {
                 if let Some(stmt) = self.parse_call_statement() {
-                    return Some(Statement::Call(stmt));
+                    return Some(StmtKind::Call(stmt));
                 }
             }
             TokenType::Return => {
                 if let Some(stmt) = return_statement::parse(self) {
-                    return Some(Statement::Return(stmt));
+                    return Some(StmtKind::Return(stmt));
                 }
             }
             TokenType::Try => {
                 if let Some(stmt) = try_statement::parse(self) {
-                    return Some(Statement::Try(stmt));
+                    return Some(StmtKind::Try(stmt));
                 }
             }
             TokenType::Set => {
                 if let Some(stmt) = set_statement::parse(self) {
-                    return Some(Statement::Set(stmt));
+                    return Some(StmtKind::Set(stmt));
                 }
             }
             TokenType::Execute => return self.parse_execute_statement(),
             TokenType::If => {
                 if let Some(stmt) = self.parse_if_statement() {
-                    return Some(Statement::If(stmt));
+                    return Some(StmtKind::If(stmt));
                 }
             }
             TokenType::Function => {
                 if let Some(stmt) = self.parse_function_statement() {
-                    return Some(Statement::Function(stmt));
+                    return Some(StmtKind::Function(stmt));
                 }
             }
             TokenType::For => {
                 if let Some(stmt) = self.parse_for_statement() {
-                    return Some(Statement::For(stmt));
+                    return Some(StmtKind::For(stmt));
                 }
             }
             TokenType::While => {
                 if let Some(stmt) = while_statement::parse(self) {
-                    return Some(Statement::While(stmt));
+                    return Some(StmtKind::While(stmt));
                 }
             }
             TokenType::NewLine => {}
@@ -191,13 +191,13 @@ impl<'a> Parser<'a> {
         return token == TokenType::NewLine || token == TokenType::Eof || token == TokenType::Pipe;
     }
 
-    fn parse_execute_statement(&mut self) -> Option<Statement> {
+    fn parse_execute_statement(&mut self) -> Option<StmtKind> {
         let mut arguments = Vec::new();
         while !Parser::end_of_statement_token(self.peek_token().token_type) {
             arguments.push(self.parse_expression()?);
         }
 
-        return Some(Statement::Execute(ExecuteStatement {
+        return Some(StmtKind::Execute(ExecuteStatement {
             arguments: arguments,
         }));
     }
@@ -270,7 +270,7 @@ impl<'a> Parser<'a> {
     }
 
     // Parses statements until the next statement starts with given token or EOF is encountered.
-    fn parse_statements_until(&mut self, token_type: TokenType) -> Option<Vec<Statement>> {
+    fn parse_statements_until(&mut self, token_type: TokenType) -> Option<Vec<StmtKind>> {
         let mut stmts = Vec::new();
         while self.peek_token().token_type != TokenType::Eof
             && self.peek_token().token_type != token_type
@@ -512,10 +512,10 @@ mod tests {
         assert_eq!(parser.errors, &[]);
         assert_eq!(
             program.statements,
-            &[Statement::Function(FunctionStatement {
+            &[StmtKind::Function(FunctionStatement {
                 name: "my#method".to_string(),
                 arguments: vec!["arg1".to_string(), "arg2".to_string()],
-                body: vec![Statement::Call(CallStatement {
+                body: vec![StmtKind::Call(CallStatement {
                     name: "guess".to_string(),
                     arguments: vec![],
                 })],
@@ -567,7 +567,7 @@ mod tests {
         assert_eq!(parser.errors, &[]);
         assert_eq!(program.statements.len(), 1);
         let for_stmt = match &program.statements[0] {
-            Statement::For(stmt) => stmt,
+            StmtKind::For(stmt) => stmt,
             stmt => panic!(format!("expected for statement, got {:?}", stmt)),
         };
         assert_eq!(
@@ -580,7 +580,7 @@ mod tests {
         };
         assert_eq!(
             for_stmt.body,
-            vec![Statement::Call(CallStatement {
+            vec![StmtKind::Call(CallStatement {
                 name: "guess".to_string(),
                 arguments: vec![],
             })]

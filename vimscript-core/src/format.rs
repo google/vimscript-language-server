@@ -17,7 +17,7 @@ use crate::ast::FunctionStatement;
 use crate::ast::IfStatement;
 use crate::ast::LetStatement;
 use crate::ast::ReturnStatement;
-use crate::ast::Statement;
+use crate::ast::StmtKind;
 use crate::parser::Expression;
 use crate::parser::Program;
 
@@ -29,12 +29,12 @@ pub fn format(program: &Program) -> String {
     return res;
 }
 
-fn format_statement(stmt: &Statement, spaces: usize) -> String {
+fn format_statement(stmt: &StmtKind, spaces: usize) -> String {
     return match stmt {
-        Statement::Function(s) => format_statement_function(s, spaces),
-        Statement::If(s) => format_if_statement(s, spaces),
-        Statement::Let(s) => format_let_statement(s, spaces),
-        Statement::Return(s) => format_return_statement(s, spaces),
+        StmtKind::Function(s) => format_statement_function(s, spaces),
+        StmtKind::If(s) => format_if_statement(s, spaces),
+        StmtKind::Let(s) => format_let_statement(s, spaces),
+        StmtKind::Return(s) => format_return_statement(s, spaces),
         _ => panic!("some statement is not supported by formatter yet"),
     };
 }
