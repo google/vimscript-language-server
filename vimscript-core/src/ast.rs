@@ -50,9 +50,9 @@ impl StmtKind {
 
 #[derive(PartialEq, Debug)]
 pub struct LetStatement {
-    pub var: Expression,
+    pub var: Box<Expression>,
     pub operator: TokenType,
-    pub value: Expression,
+    pub value: Box<Expression>,
 }
 
 impl LetStatement {

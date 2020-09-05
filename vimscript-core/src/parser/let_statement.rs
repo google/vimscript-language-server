@@ -56,20 +56,20 @@ pub fn parse(parser: &mut Parser) -> Option<LetStatement> {
     parser.expect_end_of_statement()?;
 
     return Some(LetStatement {
-        var: var,
+        var: Box::new(var),
         operator: operator.token_type,
-        value: expr,
+        value: Box::new(expr),
     });
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ast::StmtKind;
     use crate::lexer::Lexer;
     use crate::lexer::SourcePosition;
     use crate::lexer::TokenPosition;
     use crate::parser::ParseError;
-    use crate::parser::Statement;
     use pretty_assertions::assert_eq;
     use serde_json::json;
 
@@ -121,7 +121,7 @@ mod tests {
 
         assert_eq!(program.statements.len(), 1);
         let let_stmt = match &program.statements[0] {
-            Statement::Let(stmt) => stmt,
+            StmtKind::Let(stmt) => stmt,
             stmt => panic!(format!("expected let statement, got {:?}", stmt)),
         };
         // assert_eq!(let_stmt.name(), "l:var");
@@ -178,7 +178,7 @@ mod tests {
         );
         assert_eq!(program.statements.len(), 1);
         let let_stmt = match &program.statements[0] {
-            Statement::Let(stmt) => stmt,
+            StmtKind::Let(stmt) => stmt,
             stmt => panic!(format!("expected let statement, got {:?}", stmt)),
         };
         // assert_eq!(let_stmt.name(), "l:var");
