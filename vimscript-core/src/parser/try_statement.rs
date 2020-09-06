@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::ast::StmtKind;
 use crate::ast::Stmt;
+use crate::ast::StmtKind;
 use crate::ast::TryStatement;
 use crate::lexer::TokenType;
 use crate::parser::Parser;

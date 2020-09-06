@@ -20,8 +20,8 @@ use crate::ast::FunctionStatement;
 use crate::ast::IfStatement;
 use crate::ast::LetStatement;
 use crate::ast::LoopVariable;
-use crate::ast::StmtKind;
 use crate::ast::Stmt;
+use crate::ast::StmtKind;
 use crate::lexer::Lexer;
 use crate::lexer::SourceLocation;
 use crate::lexer::SourcePosition;
@@ -115,52 +115,72 @@ impl<'a> Parser<'a> {
         match token.token_type {
             TokenType::Let => {
                 if let Some(stmt) = self.parse_let_statement() {
-                    return Some(Stmt{kind: StmtKind::Let(stmt)});
+                    return Some(Stmt {
+                        kind: StmtKind::Let(stmt),
+                    });
                 }
             }
             TokenType::Break => {
                 self.expect_end_of_statement()?;
-                return Some(Stmt{kind: StmtKind::Break(BreakStatement {})});
+                return Some(Stmt {
+                    kind: StmtKind::Break(BreakStatement {}),
+                });
             }
             TokenType::Call => {
                 if let Some(stmt) = self.parse_call_statement() {
-                    return Some(Stmt{kind: StmtKind::Call(stmt)});
+                    return Some(Stmt {
+                        kind: StmtKind::Call(stmt),
+                    });
                 }
             }
             TokenType::Return => {
                 if let Some(stmt) = return_statement::parse(self) {
-                    return Some(Stmt{kind: StmtKind::Return(stmt)});
+                    return Some(Stmt {
+                        kind: StmtKind::Return(stmt),
+                    });
                 }
             }
             TokenType::Try => {
                 if let Some(stmt) = try_statement::parse(self) {
-                    return Some(Stmt{ kind: StmtKind::Try(stmt)});
+                    return Some(Stmt {
+                        kind: StmtKind::Try(stmt),
+                    });
                 }
             }
             TokenType::Set => {
                 if let Some(stmt) = set_statement::parse(self) {
-                    return Some(Stmt{kind : StmtKind::Set(stmt)});
+                    return Some(Stmt {
+                        kind: StmtKind::Set(stmt),
+                    });
                 }
             }
             TokenType::Execute => return self.parse_execute_statement(),
             TokenType::If => {
                 if let Some(stmt) = self.parse_if_statement() {
-                    return Some(Stmt{kind: StmtKind::If(stmt)});
+                    return Some(Stmt {
+                        kind: StmtKind::If(stmt),
+                    });
                 }
             }
             TokenType::Function => {
                 if let Some(stmt) = self.parse_function_statement() {
-                    return Some(Stmt{kind: StmtKind::Function(stmt)});
+                    return Some(Stmt {
+                        kind: StmtKind::Function(stmt),
+                    });
                 }
             }
             TokenType::For => {
                 if let Some(stmt) = self.parse_for_statement() {
-                    return Some(Stmt{kind: StmtKind::For(stmt)});
+                    return Some(Stmt {
+                        kind: StmtKind::For(stmt),
+                    });
                 }
             }
             TokenType::While => {
                 if let Some(stmt) = while_statement::parse(self) {
-                    return Some(Stmt{kind: StmtKind::While(stmt)});
+                    return Some(Stmt {
+                        kind: StmtKind::While(stmt),
+                    });
                 }
             }
             TokenType::NewLine => {}
@@ -198,12 +218,14 @@ impl<'a> Parser<'a> {
             arguments.push(self.parse_expression()?);
         }
 
-        return Some(Stmt{kind: StmtKind::Execute(ExecuteStatement {
-            arguments: arguments,
-        })});
+        return Some(Stmt {
+            kind: StmtKind::Execute(ExecuteStatement {
+                arguments: arguments,
+            }),
+        });
     }
 
-    // Let = 'let' VarName = Expression (NewLine | EOF)
+    // Let = 'let' VarName = ExprKind (NewLine | EOF)
     fn parse_let_statement(&mut self) -> Option<LetStatement> {
         return let_statement::parse(self);
     }
@@ -230,7 +252,7 @@ impl<'a> Parser<'a> {
 
     // Precondition - if was already read.
     //
-    // If ::= 'if' Expression NewLine Statement* 'endif'
+    // If ::= 'if' ExprKind NewLine Statement* 'endif'
     fn parse_if_statement(&mut self) -> Option<IfStatement> {
         return if_statement::parse(self);
     }
@@ -321,8 +343,8 @@ impl<'a> Parser<'a> {
 
     // Number ::= 0 | [1-9][0-9]*
     // StringLiteral ::= '.*'
-    // Expression =
-    fn parse_expression(&mut self) -> Option<Expression> {
+    // ExprKind =
+    fn parse_expression(&mut self) -> Option<ExprKind> {
         return expression::parse(self);
     }
 
@@ -463,10 +485,10 @@ mod tests {
     //         &[Statement::Call(CallStatement {
     //             name: "func".to_string(),
     //             arguments: vec![
-    //                 Expression::Identifier(IdentifierExpression {
+    //                 ExprKind::Identifier(IdentifierExpression {
     //                     name: "l:a".to_string()
     //                 }),
-    //                 Expression::Identifier(IdentifierExpression {
+    //                 ExprKind::Identifier(IdentifierExpression {
     //                     name: "l:b".to_string()
     //                 })
     //             ],
@@ -483,15 +505,15 @@ mod tests {
     //         program.statements,
     //         &[Statement::Execute(ExecuteStatement {
     //             arguments: vec![
-    //                 Expression::Identifier(IdentifierExpression {
+    //                 ExprKind::Identifier(IdentifierExpression {
     //                     name: "l:a".to_string()
     //                 }),
-    //                 Expression::Infix(InfixExpression {
-    //                     left: Box::new(Expression::Identifier(IdentifierExpression {
+    //                 ExprKind::Infix(InfixExpression {
+    //                     left: Box::new(ExprKind::Identifier(IdentifierExpression {
     //                         name: "l:b".to_string()
     //                     })),
     //                     operator: TokenType::Dot,
-    //                     right: Box::new(Expression::Identifier(IdentifierExpression {
+    //                     right: Box::new(ExprKind::Identifier(IdentifierExpression {
     //                         name: "l:c".to_string()
     //                     })),
     //                 })
@@ -513,16 +535,20 @@ mod tests {
         assert_eq!(parser.errors, &[]);
         assert_eq!(
             program.statements,
-            &[Stmt{kind: StmtKind::Function(FunctionStatement {
-                name: "my#method".to_string(),
-                arguments: vec!["arg1".to_string(), "arg2".to_string()],
-                body: vec![Stmt{kind: StmtKind::Call(CallStatement {
-                    name: "guess".to_string(),
-                    arguments: vec![],
-                })}],
-                overwrite: true,
-                abort: true,
-            })}]
+            &[Stmt {
+                kind: StmtKind::Function(FunctionStatement {
+                    name: "my#method".to_string(),
+                    arguments: vec!["arg1".to_string(), "arg2".to_string()],
+                    body: vec![Stmt {
+                        kind: StmtKind::Call(CallStatement {
+                            name: "guess".to_string(),
+                            arguments: vec![],
+                        })
+                    }],
+                    overwrite: true,
+                    abort: true,
+                })
+            }]
         );
     }
 
@@ -541,9 +567,9 @@ mod tests {
     //         program.statements,
     //         &[Statement::For(ForStatement {
     //             loop_variable: LoopVariable::Single("item".to_string()),
-    //             range: Expression::Function(FunctionExpression {
+    //             range: ExprKind::Function(FunctionExpression {
     //                 name: "copy".to_string(),
-    //                 arguments: vec![Expression::Identifier(IdentifierExpression {
+    //                 arguments: vec![ExprKind::Identifier(IdentifierExpression {
     //                     name: "mylist".to_owned(),
     //                 })],
     //             }),
@@ -576,15 +602,17 @@ mod tests {
             LoopVariable::List(vec!["a1".to_string(), "a2".to_string(), "a3".to_string()])
         );
         match &for_stmt.range {
-            Expression::Function(_) => {}
+            ExprKind::Function(_) => {}
             expr => panic!(format!("expected function expression, got {:?}", expr)),
         };
         assert_eq!(
             for_stmt.body,
-            vec![Stmt{kind: StmtKind::Call(CallStatement {
-                name: "guess".to_string(),
-                arguments: vec![],
-            })}]
+            vec![Stmt {
+                kind: StmtKind::Call(CallStatement {
+                    name: "guess".to_string(),
+                    arguments: vec![],
+                })
+            }]
         );
     }
 }

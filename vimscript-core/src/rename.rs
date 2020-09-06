@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::ast::StmtKind;
 use crate::ast::Stmt;
+use crate::ast::StmtKind;
 use crate::lexer::Lexer;
 use crate::lexer::SourcePosition;
 use crate::lexer::TokenPosition;
 use crate::lexer::TokenType;
-use crate::parser::Expression;
+use crate::parser::ExprKind;
 use crate::parser::Parser;
 use crate::parser::Program;
 use lsp_types::Position;
@@ -79,9 +79,9 @@ impl Rename {
         }
     }
 
-    fn visit_expression(&mut self, expr: &Expression, parser: &Parser) {
+    fn visit_expression(&mut self, expr: &ExprKind, parser: &Parser) {
         match expr {
-            Expression::Identifier(expr) => {
+            ExprKind::Identifier(expr) => {
                 let positions = self
                     .token_to_positions
                     .entry(expr.name().to_string())

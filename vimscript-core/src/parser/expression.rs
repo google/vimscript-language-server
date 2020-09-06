@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
-pub enum Expression {
+pub enum ExprKind {
     Identifier(IdentifierExpression),
     Number(NumberExpression),
     Infix(InfixExpression),
@@ -35,26 +35,26 @@ pub enum Expression {
     Dictionary(DictionaryExpression),
 }
 
-impl Expression {
+impl ExprKind {
     pub fn to_string(&self) -> String {
         match self {
-            Expression::Number(expr) => format!("{}", expr.value),
+            ExprKind::Number(expr) => format!("{}", expr.value),
             _ => format!("not implemented"),
         }
     }
     pub fn dump_for_testing(&self) -> serde_json::Value {
         return match self {
-            Expression::Number(e) => json!({"number":  e.dump_for_testing()}),
-            Expression::Identifier(e) => json!({"identifier":  e.dump_for_testing()}),
-            Expression::Function(e) => json!({"function":  e.dump_for_testing()}),
-            Expression::StringLiteral(e) => json!({"stringLiteral":  e.dump_for_testing()}),
-            Expression::Infix(e) => json!({"infix":  e.dump_for_testing()}),
-            Expression::ArraySubscript(e) => json!({"arraySubscript":  e.dump_for_testing()}),
-            Expression::Array(e) => json!({"array":  e.dump_for_testing()}),
-            Expression::Unary(e) => json!({"unary":  e.dump_for_testing()}),
-            Expression::Paren(e) => json!({"paren":  e.dump_for_testing()}),
-            Expression::Choose(e) => json!({"choose":  e.dump_for_testing()}),
-            Expression::Dictionary(e) => json!({"dictionary":  e.dump_for_testing()}),
+            ExprKind::Number(e) => json!({"number":  e.dump_for_testing()}),
+            ExprKind::Identifier(e) => json!({"identifier":  e.dump_for_testing()}),
+            ExprKind::Function(e) => json!({"function":  e.dump_for_testing()}),
+            ExprKind::StringLiteral(e) => json!({"stringLiteral":  e.dump_for_testing()}),
+            ExprKind::Infix(e) => json!({"infix":  e.dump_for_testing()}),
+            ExprKind::ArraySubscript(e) => json!({"arraySubscript":  e.dump_for_testing()}),
+            ExprKind::Array(e) => json!({"array":  e.dump_for_testing()}),
+            ExprKind::Unary(e) => json!({"unary":  e.dump_for_testing()}),
+            ExprKind::Paren(e) => json!({"paren":  e.dump_for_testing()}),
+            ExprKind::Choose(e) => json!({"choose":  e.dump_for_testing()}),
+            ExprKind::Dictionary(e) => json!({"dictionary":  e.dump_for_testing()}),
         };
     }
 }
@@ -108,7 +108,7 @@ impl Serialize for StringLiteralExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ParenExpression {
-    pub expr: Box<Expression>,
+    pub expr: Box<ExprKind>,
 }
 
 impl ParenExpression {
@@ -119,9 +119,9 @@ impl ParenExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ChooseExpression {
-    pub cond: Box<Expression>,
-    pub lhs: Box<Expression>,
-    pub rhs: Box<Expression>,
+    pub cond: Box<ExprKind>,
+    pub lhs: Box<ExprKind>,
+    pub rhs: Box<ExprKind>,
 }
 
 impl ChooseExpression {
@@ -137,7 +137,7 @@ impl ChooseExpression {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct UnaryExpression {
     pub operator: TokenType,
-    pub expr: Box<Expression>,
+    pub expr: Box<ExprKind>,
 }
 
 impl UnaryExpression {
@@ -151,9 +151,9 @@ impl UnaryExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct InfixExpression {
-    pub left: Box<Expression>,
+    pub left: Box<ExprKind>,
     pub operator: TokenType,
-    pub right: Box<Expression>,
+    pub right: Box<ExprKind>,
 }
 
 impl InfixExpression {
@@ -168,8 +168,8 @@ impl InfixExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FunctionExpression {
-    pub callee: Box<Expression>,
-    pub arguments: Vec<Expression>,
+    pub callee: Box<ExprKind>,
+    pub arguments: Vec<ExprKind>,
 }
 
 impl FunctionExpression {
@@ -197,7 +197,7 @@ impl NumberExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum ArraySubscript {
-    Index(Expression),
+    Index(ExprKind),
     Sublist(Sublist),
 }
 
@@ -212,8 +212,8 @@ impl ArraySubscript {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Sublist {
-    pub left: Option<Expression>,
-    pub right: Option<Expression>,
+    pub left: Option<ExprKind>,
+    pub right: Option<ExprKind>,
 }
 
 impl Sublist {
@@ -237,7 +237,7 @@ impl Sublist {
 // Represents `base[idx]`
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ArraySubscriptExpression {
-    pub base: Box<Expression>,
+    pub base: Box<ExprKind>,
     pub idx: Box<ArraySubscript>,
 }
 
@@ -252,7 +252,7 @@ impl ArraySubscriptExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ArrayExpression {
-    elements: Vec<Expression>,
+    elements: Vec<ExprKind>,
 }
 
 impl ArrayExpression {
@@ -266,7 +266,7 @@ impl ArrayExpression {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 struct DictionaryEntry {
     key: String,
-    value: Expression,
+    value: ExprKind,
 }
 
 impl DictionaryEntry {
@@ -293,8 +293,8 @@ impl DictionaryExpression {
 
 // Number ::= 0 | [1-9][0-9]*
 // StringLiteral ::= '.*'
-// Expression =
-pub fn parse(parser: &mut Parser) -> Option<Expression> {
+// ExprKind =
+pub fn parse(parser: &mut Parser) -> Option<ExprKind> {
     let mut left = parse_prefix_expression(parser)?;
 
     loop {
@@ -304,7 +304,7 @@ pub fn parse(parser: &mut Parser) -> Option<Expression> {
             let lhs = parse(parser)?;
             parser.expect_token(TokenType::Colon)?;
             let rhs = parse(parser)?;
-            return Some(Expression::Choose(ChooseExpression {
+            return Some(ExprKind::Choose(ChooseExpression {
                 cond: Box::new(left),
                 lhs: Box::new(lhs),
                 rhs: Box::new(rhs),
@@ -315,7 +315,7 @@ pub fn parse(parser: &mut Parser) -> Option<Expression> {
         }
         parser.advance();
         let right = parse_prefix_expression(parser)?;
-        left = Expression::Infix(InfixExpression {
+        left = ExprKind::Infix(InfixExpression {
             left: Box::new(left),
             operator: peek_type,
             right: Box::new(right),
@@ -355,10 +355,10 @@ fn is_operator(token_type: TokenType) -> bool {
 // Parses the whole expression starting with identifier:
 // - single identifier
 // - function call
-fn parse_ident_expression(parser: &mut Parser) -> Option<Expression> {
+fn parse_ident_expression(parser: &mut Parser) -> Option<ExprKind> {
     let name_location = parser.peek_token().location;
     let name = parser.expect_identifier()?;
-    let mut left = Expression::Identifier(IdentifierExpression {
+    let mut left = ExprKind::Identifier(IdentifierExpression {
         name: name,
         name_location: name_location,
     });
@@ -368,7 +368,7 @@ fn parse_ident_expression(parser: &mut Parser) -> Option<Expression> {
                 parser.advance();
                 let arguments =
                     parser.parse_list(|p| p.parse_expression(), TokenType::RightParenthesis)?;
-                left = Expression::Function(FunctionExpression {
+                left = ExprKind::Function(FunctionExpression {
                     callee: Box::new(left),
                     arguments: arguments,
                 });
@@ -377,7 +377,7 @@ fn parse_ident_expression(parser: &mut Parser) -> Option<Expression> {
                 parser.advance();
                 let idx = parse_array_subscript(parser)?;
                 parser.expect_token(TokenType::RightBracket)?;
-                left = Expression::ArraySubscript(ArraySubscriptExpression {
+                left = ExprKind::ArraySubscript(ArraySubscriptExpression {
                     base: Box::new(left),
                     idx: Box::new(idx),
                 });
@@ -422,18 +422,18 @@ fn parse_dictionary_entry(parser: &mut Parser) -> Option<DictionaryEntry> {
     });
 }
 
-fn parse_prefix_expression(parser: &mut Parser) -> Option<Expression> {
+fn parse_prefix_expression(parser: &mut Parser) -> Option<ExprKind> {
     let token = parser.peek_token();
     match token.token_type {
         TokenType::Number => {
             parser.advance();
-            return Some(Expression::Number(NumberExpression {
+            return Some(ExprKind::Number(NumberExpression {
                 value: parser.l.token_text(&token.location).parse().unwrap(),
             }));
         }
         TokenType::StringLiteral => {
             parser.advance();
-            return Some(Expression::StringLiteral(StringLiteralExpression {
+            return Some(ExprKind::StringLiteral(StringLiteralExpression {
                 value: literal(parser.l.token_text(&token.location)).to_string(),
             }));
         }
@@ -442,7 +442,7 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expression> {
             parser.advance();
             let entries =
                 parser.parse_list(|p| parse_dictionary_entry(p), TokenType::RightCurlyBrace)?;
-            return Some(Expression::Dictionary(DictionaryExpression {
+            return Some(ExprKind::Dictionary(DictionaryExpression {
                 entries: entries,
             }));
         }
@@ -451,13 +451,13 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expression> {
             parser.advance();
             let expr = parse(parser)?;
             parser.expect_token(TokenType::RightParenthesis)?;
-            return Some(Expression::Paren(ParenExpression {
+            return Some(ExprKind::Paren(ParenExpression {
                 expr: Box::new(expr),
             }));
         }
         TokenType::Minus | TokenType::Bang => {
             parser.advance();
-            return Some(Expression::Unary(UnaryExpression {
+            return Some(ExprKind::Unary(UnaryExpression {
                 operator: token.token_type,
                 expr: Box::new(parse_prefix_expression(parser)?),
             }));
@@ -469,10 +469,10 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expression> {
     }
 }
 
-fn parse_array(parser: &mut Parser) -> Option<Expression> {
+fn parse_array(parser: &mut Parser) -> Option<ExprKind> {
     parser.expect_token(TokenType::LeftBracket);
     let elements = parser.parse_list(|p| parse(p), TokenType::RightBracket)?;
-    return Some(Expression::Array(ArrayExpression { elements: elements }));
+    return Some(ExprKind::Array(ArrayExpression { elements: elements }));
 }
 
 // TODO: this is incorrect, because it does not handle escaping properly.

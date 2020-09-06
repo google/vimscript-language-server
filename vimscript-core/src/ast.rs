@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::lexer::TokenType;
-use crate::parser::Expression;
+use crate::parser::ExprKind;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -24,7 +24,7 @@ pub struct Stmt {
 
 impl Stmt {
     pub fn dump_for_testing(&self) -> serde_json::Value {
-        return self.kind.dump_for_testing()
+        return self.kind.dump_for_testing();
     }
 }
 
@@ -62,9 +62,9 @@ impl StmtKind {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct LetStatement {
-    pub var: Box<Expression>,
+    pub var: Box<ExprKind>,
     pub operator: TokenType,
-    pub value: Box<Expression>,
+    pub value: Box<ExprKind>,
 }
 
 impl LetStatement {
@@ -80,7 +80,7 @@ impl LetStatement {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct CallStatement {
     pub name: String,
-    pub arguments: Vec<Expression>,
+    pub arguments: Vec<ExprKind>,
 }
 
 impl CallStatement {
@@ -103,7 +103,7 @@ impl BreakStatement {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteStatement {
-    pub arguments: Vec<Expression>,
+    pub arguments: Vec<ExprKind>,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -132,7 +132,7 @@ impl FunctionStatement {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ForStatement {
     pub loop_variable: LoopVariable,
-    pub range: Expression,
+    pub range: ExprKind,
     pub body: Vec<Stmt>,
 }
 
@@ -144,7 +144,7 @@ pub enum LoopVariable {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ReturnStatement {
-    pub value: Option<Expression>,
+    pub value: Option<ExprKind>,
 }
 
 impl ReturnStatement {
@@ -192,7 +192,7 @@ impl ElseCond {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IfStatement {
-    pub condition: Expression,
+    pub condition: ExprKind,
     pub then: Vec<Stmt>,
     pub else_cond: ElseCond,
 }
@@ -233,7 +233,7 @@ impl TryStatement {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct WhileStatement {
-    pub condition: Expression,
+    pub condition: ExprKind,
     pub body: Vec<Stmt>,
 }
 

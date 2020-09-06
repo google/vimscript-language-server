@@ -17,9 +17,9 @@ use crate::ast::FunctionStatement;
 use crate::ast::IfStatement;
 use crate::ast::LetStatement;
 use crate::ast::ReturnStatement;
-use crate::ast::StmtKind;
 use crate::ast::Stmt;
-use crate::parser::Expression;
+use crate::ast::StmtKind;
+use crate::parser::ExprKind;
 use crate::parser::Program;
 
 pub fn format(program: &Program) -> String {
@@ -32,7 +32,7 @@ pub fn format(program: &Program) -> String {
 
 fn format_statement(stmt: &Stmt, spaces: usize) -> String {
     return match &stmt.kind {
-        StmtKind::Function( s) => format_statement_function(&s, spaces),
+        StmtKind::Function(s) => format_statement_function(&s, spaces),
         StmtKind::If(s) => format_if_statement(&s, spaces),
         StmtKind::Let(s) => format_let_statement(&s, spaces),
         StmtKind::Return(s) => format_return_statement(&s, spaces),
@@ -61,10 +61,10 @@ fn format_statement_function(stmt: &FunctionStatement, spaces: usize) -> String 
     return s;
 }
 
-fn format_expression(expr: &Expression) -> String {
+fn format_expression(expr: &ExprKind) -> String {
     return match expr {
-        Expression::Identifier(e) => e.name().to_string(),
-        Expression::Number(e) => e.value().to_string(),
+        ExprKind::Identifier(e) => e.name().to_string(),
+        ExprKind::Number(e) => e.value().to_string(),
         _ => "<unknown expression>".to_string(),
     };
 }
