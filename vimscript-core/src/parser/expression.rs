@@ -16,7 +16,7 @@ use crate::lexer::SourceLocation;
 
 use crate::lexer::TokenType;
 use crate::parser::Parser;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -59,7 +59,7 @@ impl Expression {
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[derive(PartialEq, Debug, Deserialize)]
 pub struct IdentifierExpression {
     pub name: String,
     pub name_location: SourceLocation,
@@ -73,18 +73,36 @@ impl IdentifierExpression {
         return &self.name_location;
     }
     pub fn dump_for_testing(&self) -> serde_json::Value {
-        return json!(self.name);
+        return json!(self);
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize)]
+impl Serialize for IdentifierExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.name)
+    }
+}
+
+#[derive(PartialEq, Debug, Deserialize)]
 pub struct StringLiteralExpression {
     pub value: String,
 }
 
 impl StringLiteralExpression {
     pub fn dump_for_testing(&self) -> serde_json::Value {
-        return json!(self.value);
+        return json!(self);
+    }
+}
+
+impl Serialize for StringLiteralExpression {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.value)
     }
 }
 
