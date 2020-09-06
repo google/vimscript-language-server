@@ -12,35 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::ast::BreakStatement;
-use crate::ast::CallStatement;
-use crate::ast::ExecuteStatement;
-use crate::ast::ForStatement;
-use crate::ast::FunctionStatement;
-use crate::ast::IfStatement;
-use crate::ast::LetStatement;
-use crate::ast::LoopVariable;
-use crate::ast::Stmt;
-use crate::ast::StmtKind;
+use crate::ast::*;
 use crate::lexer::Lexer;
 use crate::lexer::SourceLocation;
 use crate::lexer::SourcePosition;
 use crate::lexer::Token;
 use crate::lexer::TokenPosition;
 use crate::lexer::TokenType;
-pub use crate::parser::expression::*;
 use serde_json::json;
-
-pub mod expression;
-
-pub mod if_statement;
-pub mod let_statement;
-pub mod return_statement;
-pub mod set_statement;
-pub mod try_statement;
-pub mod while_statement;
 use std::iter::Iterator;
 use std::iter::Peekable;
+
+mod expression;
+mod if_statement;
+mod let_statement;
+mod return_statement;
+mod set_statement;
+mod try_statement;
+mod while_statement;
 
 #[derive(PartialEq, Debug)]
 pub struct Program {

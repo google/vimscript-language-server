@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::ast::ExprKind;
 use crate::ast::Stmt;
 use crate::ast::StmtKind;
 use crate::lexer::Lexer;
 use crate::lexer::SourcePosition;
 use crate::lexer::TokenPosition;
 use crate::lexer::TokenType;
-use crate::parser::ExprKind;
 use crate::parser::Parser;
 use crate::parser::Program;
 use lsp_types::Position;
