@@ -120,7 +120,7 @@ mod tests {
         assert_eq!(parser.errors, &[]);
 
         assert_eq!(program.statements.len(), 1);
-        let let_stmt = match &program.statements[0] {
+        let let_stmt = match &program.statements[0].kind {
             StmtKind::Let(stmt) => stmt,
             stmt => panic!(format!("expected let statement, got {:?}", stmt)),
         };
@@ -177,7 +177,7 @@ mod tests {
             }]
         );
         assert_eq!(program.statements.len(), 1);
-        let let_stmt = match &program.statements[0] {
+        let let_stmt = match &program.statements[0].kind {
             StmtKind::Let(stmt) => stmt,
             stmt => panic!(format!("expected let statement, got {:?}", stmt)),
         };

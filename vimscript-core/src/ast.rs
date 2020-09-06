@@ -18,6 +18,17 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct Stmt {
+    pub kind: StmtKind,
+}
+
+impl Stmt {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return self.kind.dump_for_testing()
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum StmtKind {
     Let(LetStatement),
     Call(CallStatement),
@@ -100,7 +111,7 @@ pub struct FunctionStatement {
     pub name: String,
     // TODO change to list of tokens?
     pub arguments: Vec<String>,
-    pub body: Vec<StmtKind>,
+    pub body: Vec<Stmt>,
     // true if 'function!'
     pub overwrite: bool,
     pub abort: bool,
@@ -122,7 +133,7 @@ impl FunctionStatement {
 pub struct ForStatement {
     pub loop_variable: LoopVariable,
     pub range: Expression,
-    pub body: Vec<StmtKind>,
+    pub body: Vec<Stmt>,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -160,7 +171,7 @@ impl SetStatement {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum ElseCond {
     None,
-    Else(Vec<StmtKind>),
+    Else(Vec<Stmt>),
     ElseIf(Box<IfStatement>),
 }
 
@@ -182,7 +193,7 @@ impl ElseCond {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IfStatement {
     pub condition: Expression,
-    pub then: Vec<StmtKind>,
+    pub then: Vec<Stmt>,
     pub else_cond: ElseCond,
 }
 
@@ -198,8 +209,8 @@ impl IfStatement {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct TryStatement {
-    pub body: Vec<StmtKind>,
-    pub finally: Option<Vec<StmtKind>>,
+    pub body: Vec<Stmt>,
+    pub finally: Option<Vec<Stmt>>,
 }
 
 impl TryStatement {
@@ -223,7 +234,7 @@ impl TryStatement {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct WhileStatement {
     pub condition: Expression,
-    pub body: Vec<StmtKind>,
+    pub body: Vec<Stmt>,
 }
 
 impl WhileStatement {

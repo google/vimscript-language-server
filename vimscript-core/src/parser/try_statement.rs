@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use crate::ast::StmtKind;
+use crate::ast::Stmt;
 use crate::ast::TryStatement;
 use crate::lexer::TokenType;
 use crate::parser::Parser;
@@ -47,7 +48,7 @@ pub fn parse(parser: &mut Parser) -> Option<TryStatement> {
     }
 }
 
-fn parse_statements_until<F>(parser: &mut Parser, predicate: F) -> Vec<StmtKind>
+fn parse_statements_until<F>(parser: &mut Parser, predicate: F) -> Vec<Stmt>
 where
     F: Fn(TokenType) -> bool,
 {

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use crate::ast::StmtKind;
+use crate::ast::Stmt;
 use crate::lexer::Lexer;
 use crate::lexer::SourcePosition;
 use crate::lexer::TokenPosition;
@@ -63,8 +64,8 @@ impl Rename {
         }
     }
 
-    fn visit_statement(&mut self, stmt: &StmtKind, parser: &Parser) {
-        match stmt {
+    fn visit_statement(&mut self, stmt: &Stmt, parser: &Parser) {
+        match &stmt.kind {
             // Statement::Let(stmt) => {
             //     let positions = self.token_to_positions.entry(stmt.name().to_string()).or_insert(Vec::new());
             //     positions.push(parser.resolve_location(stmt.name_location().clone()));

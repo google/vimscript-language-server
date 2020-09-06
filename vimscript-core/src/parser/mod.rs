@@ -21,6 +21,7 @@ use crate::ast::IfStatement;
 use crate::ast::LetStatement;
 use crate::ast::LoopVariable;
 use crate::ast::StmtKind;
+use crate::ast::Stmt;
 use crate::lexer::Lexer;
 use crate::lexer::SourceLocation;
 use crate::lexer::SourcePosition;
@@ -43,7 +44,7 @@ use std::iter::Peekable;
 
 #[derive(PartialEq, Debug)]
 pub struct Program {
-    pub statements: Vec<StmtKind>,
+    pub statements: Vec<Stmt>,
 }
 
 impl Program {
@@ -109,57 +110,57 @@ impl<'a> Parser<'a> {
 
     // Parses a statement, including the new line at the end of statement.
     // Returns None when statement failed to parse.
-    fn parse_statement(&mut self) -> Option<StmtKind> {
+    fn parse_statement(&mut self) -> Option<Stmt> {
         let token = self.lexer.next()?;
         match token.token_type {
             TokenType::Let => {
                 if let Some(stmt) = self.parse_let_statement() {
-                    return Some(StmtKind::Let(stmt));
+                    return Some(Stmt{kind: StmtKind::Let(stmt)});
                 }
             }
             TokenType::Break => {
                 self.expect_end_of_statement()?;
-                return Some(StmtKind::Break(BreakStatement {}));
+                return Some(Stmt{kind: StmtKind::Break(BreakStatement {})});
             }
             TokenType::Call => {
                 if let Some(stmt) = self.parse_call_statement() {
-                    return Some(StmtKind::Call(stmt));
+                    return Some(Stmt{kind: StmtKind::Call(stmt)});
                 }
             }
             TokenType::Return => {
                 if let Some(stmt) = return_statement::parse(self) {
-                    return Some(StmtKind::Return(stmt));
+                    return Some(Stmt{kind: StmtKind::Return(stmt)});
                 }
             }
             TokenType::Try => {
                 if let Some(stmt) = try_statement::parse(self) {
-                    return Some(StmtKind::Try(stmt));
+                    return Some(Stmt{ kind: StmtKind::Try(stmt)});
                 }
             }
             TokenType::Set => {
                 if let Some(stmt) = set_statement::parse(self) {
-                    return Some(StmtKind::Set(stmt));
+                    return Some(Stmt{kind : StmtKind::Set(stmt)});
                 }
             }
             TokenType::Execute => return self.parse_execute_statement(),
             TokenType::If => {
                 if let Some(stmt) = self.parse_if_statement() {
-                    return Some(StmtKind::If(stmt));
+                    return Some(Stmt{kind: StmtKind::If(stmt)});
                 }
             }
             TokenType::Function => {
                 if let Some(stmt) = self.parse_function_statement() {
-                    return Some(StmtKind::Function(stmt));
+                    return Some(Stmt{kind: StmtKind::Function(stmt)});
                 }
             }
             TokenType::For => {
                 if let Some(stmt) = self.parse_for_statement() {
-                    return Some(StmtKind::For(stmt));
+                    return Some(Stmt{kind: StmtKind::For(stmt)});
                 }
             }
             TokenType::While => {
                 if let Some(stmt) = while_statement::parse(self) {
-                    return Some(StmtKind::While(stmt));
+                    return Some(Stmt{kind: StmtKind::While(stmt)});
                 }
             }
             TokenType::NewLine => {}
@@ -191,15 +192,15 @@ impl<'a> Parser<'a> {
         return token == TokenType::NewLine || token == TokenType::Eof || token == TokenType::Pipe;
     }
 
-    fn parse_execute_statement(&mut self) -> Option<StmtKind> {
+    fn parse_execute_statement(&mut self) -> Option<Stmt> {
         let mut arguments = Vec::new();
         while !Parser::end_of_statement_token(self.peek_token().token_type) {
             arguments.push(self.parse_expression()?);
         }
 
-        return Some(StmtKind::Execute(ExecuteStatement {
+        return Some(Stmt{kind: StmtKind::Execute(ExecuteStatement {
             arguments: arguments,
-        }));
+        })});
     }
 
     // Let = 'let' VarName = Expression (NewLine | EOF)
@@ -270,7 +271,7 @@ impl<'a> Parser<'a> {
     }
 
     // Parses statements until the next statement starts with given token or EOF is encountered.
-    fn parse_statements_until(&mut self, token_type: TokenType) -> Option<Vec<StmtKind>> {
+    fn parse_statements_until(&mut self, token_type: TokenType) -> Option<Vec<Stmt>> {
         let mut stmts = Vec::new();
         while self.peek_token().token_type != TokenType::Eof
             && self.peek_token().token_type != token_type
@@ -512,16 +513,16 @@ mod tests {
         assert_eq!(parser.errors, &[]);
         assert_eq!(
             program.statements,
-            &[StmtKind::Function(FunctionStatement {
+            &[Stmt{kind: StmtKind::Function(FunctionStatement {
                 name: "my#method".to_string(),
                 arguments: vec!["arg1".to_string(), "arg2".to_string()],
-                body: vec![StmtKind::Call(CallStatement {
+                body: vec![Stmt{kind: StmtKind::Call(CallStatement {
                     name: "guess".to_string(),
                     arguments: vec![],
-                })],
+                })}],
                 overwrite: true,
                 abort: true,
-            })]
+            })}]
         );
     }
 
@@ -566,7 +567,7 @@ mod tests {
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);
         assert_eq!(program.statements.len(), 1);
-        let for_stmt = match &program.statements[0] {
+        let for_stmt = match &program.statements[0].kind {
             StmtKind::For(stmt) => stmt,
             stmt => panic!(format!("expected for statement, got {:?}", stmt)),
         };
@@ -580,10 +581,10 @@ mod tests {
         };
         assert_eq!(
             for_stmt.body,
-            vec![StmtKind::Call(CallStatement {
+            vec![Stmt{kind: StmtKind::Call(CallStatement {
                 name: "guess".to_string(),
                 arguments: vec![],
-            })]
+            })}]
         );
     }
 }
