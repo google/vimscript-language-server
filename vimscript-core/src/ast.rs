@@ -63,9 +63,9 @@ impl StmtKind {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct LetStatement {
-    pub var: Box<ExprKind>,
+    pub var: Box<Expr>,
     pub operator: TokenType,
-    pub value: Box<ExprKind>,
+    pub value: Box<Expr>,
 }
 
 impl LetStatement {
@@ -81,7 +81,7 @@ impl LetStatement {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct CallStatement {
     pub name: String,
-    pub arguments: Vec<ExprKind>,
+    pub arguments: Vec<Expr>,
 }
 
 impl CallStatement {
@@ -104,7 +104,7 @@ impl BreakStatement {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ExecuteStatement {
-    pub arguments: Vec<ExprKind>,
+    pub arguments: Vec<Expr>,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
@@ -133,7 +133,7 @@ impl FunctionStatement {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ForStatement {
     pub loop_variable: LoopVariable,
-    pub range: ExprKind,
+    pub range: Expr,
     pub body: Vec<Stmt>,
 }
 
@@ -145,7 +145,7 @@ pub enum LoopVariable {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ReturnStatement {
-    pub value: Option<ExprKind>,
+    pub value: Option<Expr>,
 }
 
 impl ReturnStatement {
@@ -193,7 +193,7 @@ impl ElseCond {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct IfStatement {
-    pub condition: ExprKind,
+    pub condition: Expr,
     pub then: Vec<Stmt>,
     pub else_cond: ElseCond,
 }
@@ -234,7 +234,7 @@ impl TryStatement {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct WhileStatement {
-    pub condition: ExprKind,
+    pub condition: Expr,
     pub body: Vec<Stmt>,
 }
 
@@ -254,6 +254,9 @@ pub struct Expr {
 }
 
 impl Expr {
+    pub fn to_string(&self) -> String {
+        return self.kind.to_string()
+    }
     pub fn dump_for_testing(&self) -> serde_json::Value {
         return self.kind.dump_for_testing();
     }
@@ -348,7 +351,7 @@ impl Serialize for StringLiteralExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ParenExpression {
-    pub expr: Box<ExprKind>,
+    pub expr: Box<Expr>,
 }
 
 impl ParenExpression {
@@ -359,9 +362,9 @@ impl ParenExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ChooseExpression {
-    pub cond: Box<ExprKind>,
-    pub lhs: Box<ExprKind>,
-    pub rhs: Box<ExprKind>,
+    pub cond: Box<Expr>,
+    pub lhs: Box<Expr>,
+    pub rhs: Box<Expr>,
 }
 
 impl ChooseExpression {
@@ -377,7 +380,7 @@ impl ChooseExpression {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct UnaryExpression {
     pub operator: TokenType,
-    pub expr: Box<ExprKind>,
+    pub expr: Box<Expr>,
 }
 
 impl UnaryExpression {
@@ -391,9 +394,9 @@ impl UnaryExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct InfixExpression {
-    pub left: Box<ExprKind>,
+    pub left: Box<Expr>,
     pub operator: TokenType,
-    pub right: Box<ExprKind>,
+    pub right: Box<Expr>,
 }
 
 impl InfixExpression {
@@ -408,8 +411,8 @@ impl InfixExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct FunctionExpression {
-    pub callee: Box<ExprKind>,
-    pub arguments: Vec<ExprKind>,
+    pub callee: Box<Expr>,
+    pub arguments: Vec<Expr>,
 }
 
 impl FunctionExpression {
@@ -437,7 +440,7 @@ impl NumberExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum ArraySubscript {
-    Index(ExprKind),
+    Index(Expr),
     Sublist(Sublist),
 }
 
@@ -452,8 +455,8 @@ impl ArraySubscript {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Sublist {
-    pub left: Option<ExprKind>,
-    pub right: Option<ExprKind>,
+    pub left: Option<Expr>,
+    pub right: Option<Expr>,
 }
 
 impl Sublist {
@@ -477,7 +480,7 @@ impl Sublist {
 // Represents `base[idx]`
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ArraySubscriptExpression {
-    pub base: Box<ExprKind>,
+    pub base: Box<Expr>,
     pub idx: Box<ArraySubscript>,
 }
 
@@ -492,7 +495,7 @@ impl ArraySubscriptExpression {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct ArrayExpression {
-    pub elements: Vec<ExprKind>,
+    pub elements: Vec<Expr>,
 }
 
 impl ArrayExpression {
@@ -506,7 +509,7 @@ impl ArrayExpression {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct DictionaryEntry {
     pub key: String,
-    pub value: ExprKind,
+    pub value: Expr,
 }
 
 impl DictionaryEntry {

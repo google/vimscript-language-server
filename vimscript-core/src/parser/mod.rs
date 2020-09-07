@@ -333,7 +333,7 @@ impl<'a> Parser<'a> {
     // Number ::= 0 | [1-9][0-9]*
     // StringLiteral ::= '.*'
     // ExprKind =
-    fn parse_expression(&mut self) -> Option<ExprKind> {
+    fn parse_expression(&mut self) -> Option<Expr> {
         return expression::parse(self);
     }
 
@@ -590,7 +590,7 @@ mod tests {
             for_stmt.loop_variable,
             LoopVariable::List(vec!["a1".to_string(), "a2".to_string(), "a3".to_string()])
         );
-        match &for_stmt.range {
+        match &for_stmt.range.kind {
             ExprKind::Function(_) => {}
             expr => panic!(format!("expected function expression, got {:?}", expr)),
         };

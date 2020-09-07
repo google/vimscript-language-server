@@ -72,7 +72,7 @@ impl Rename {
             // }
             StmtKind::Call(stmt) => {
                 for expr in &stmt.arguments {
-                    self.visit_expression(expr, parser)
+                    self.visit_expression(&expr.kind, parser)
                 }
             }
             _ => {}

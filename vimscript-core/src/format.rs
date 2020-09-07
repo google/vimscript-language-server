@@ -66,16 +66,16 @@ fn format_let_statement(stmt: &LetStatement, spaces: usize) -> String {
     let mut s = String::new();
     s.push_str(&" ".repeat(spaces * 2));
     s.push_str("let ");
-    s.push_str(&format_expression(&stmt.var));
+    s.push_str(&format_expression(&stmt.var.kind));
     s.push_str(" ");
     s.push_str(stmt.operator.to_str());
     s.push_str(" ");
-    s.push_str(&format_expression(&stmt.value));
+    s.push_str(&format_expression(&stmt.value.kind));
     s.push_str("\n");
     return s;
 }
 
-fn format_return_statement(stmt: &ReturnStatement, spaces: usize) -> String {
+fn format_return_statement(_stmt: &ReturnStatement, spaces: usize) -> String {
     let mut s = String::new();
     s.push_str(&" ".repeat(spaces * 2));
     s.push_str("return");
@@ -87,7 +87,7 @@ fn format_if_statement(stmt: &IfStatement, spaces: usize) -> String {
     let mut s = String::new();
     s.push_str(&" ".repeat(spaces * 2));
     s.push_str("if ");
-    s.push_str(&format_expression(&stmt.condition));
+    s.push_str(&format_expression(&stmt.condition.kind));
     s.push_str("\n");
     s.push_str(&format_if_statement_internal(stmt, spaces));
     s.push_str("endif\n");
@@ -110,7 +110,7 @@ fn format_if_statement_internal(stmt: &IfStatement, spaces: usize) -> String {
         }
         ElseCond::ElseIf(stmt) => {
             s.push_str("elseif ");
-            s.push_str(&format_expression(&stmt.condition));
+            s.push_str(&format_expression(&stmt.condition.kind));
             s.push_str("\n");
             s.push_str(&format_if_statement_internal(stmt, spaces))
         }
