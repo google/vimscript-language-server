@@ -19,6 +19,7 @@ use serde_json::json;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Stmt {
+    // TODO: Add `id`, `span` and `comments` fields.
     pub kind: StmtKind,
 }
 
@@ -243,6 +244,18 @@ impl WhileStatement {
             "condition": self.condition.dump_for_testing(),
             "body": self.body.iter().map(|s| s.dump_for_testing()).collect::<Vec<serde_json::Value>>(),
         });
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct Expr {
+    // TODO: Add `id`, `span` and `comments` fields.
+    pub kind: ExprKind,
+}
+
+impl Expr {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return self.kind.dump_for_testing();
     }
 }
 
