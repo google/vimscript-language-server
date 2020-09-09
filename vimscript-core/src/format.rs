@@ -14,13 +14,59 @@
 
 use crate::ast::*;
 use crate::parser::Program;
+use std::io::Write;
 
 pub fn format(program: &Program) -> String {
-    let mut res = "".to_string();
-    for statement in &program.statements {
-        res += &format_statement(&statement, 0)
+    let mut w = Vec::new();
+    let mut state = State{
+        options: Options{indent: 2},
+        out: &mut w,
+        indent: 0,
+    };
+    state.format(&program);
+    return String::from_utf8(w).unwrap();
+}
+
+// TODO: Make this struct public.
+struct Options {
+    // Number of spaces to use for indentation.
+    // TODO: Support spaces and tabs.
+    indent: usize,
+}
+
+struct State<'a, W: Write>{
+    options: Options,
+    out: &'a mut W,
+    // Current identation level
+    indent: usize,
+}
+
+impl<'a, W: Write> State<'a, W> {
+    fn format(&mut self, program: &Program) {
+        for statement in &program.statements {
+            self.format_stmt(&statement)
+        }
     }
-    return res;
+
+    fn format_stmt(&mut self, stmt: &Stmt) {
+        return match &stmt.kind {
+            // StmtKind::Function(s) => self.format_statement_function(&s),
+            // StmtKind::If(s) => self.format_if_statement(&s),
+            // StmtKind::Let(s) => self.format_let_statement(&s),
+            StmtKind::Return(s) => self.format_return_statement(&s),
+            _ => panic!("some statement is not supported by formatter yet"),
+        };
+    }
+
+    fn format_return_statement(&mut self, _stmt: &ReturnStatement) {
+        self.write_indent();
+        write!(self.out, "return");
+        write!(self.out, "\n");
+    }
+
+    fn write_indent(&mut self) {
+        write!(self.out, "{}", &" ".repeat(self.options.indent * self.indent));
+    }
 }
 
 fn format_statement(stmt: &Stmt, spaces: usize) -> String {
