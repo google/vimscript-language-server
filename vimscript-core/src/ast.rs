@@ -255,7 +255,7 @@ pub struct Expr {
 
 impl Expr {
     pub fn to_string(&self) -> String {
-        return self.kind.to_string()
+        return self.kind.to_string();
     }
     pub fn dump_for_testing(&self) -> serde_json::Value {
         return self.kind.dump_for_testing();

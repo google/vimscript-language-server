@@ -26,22 +26,26 @@ pub fn parse(parser: &mut Parser) -> Option<Expr> {
             let lhs = parse(parser)?;
             parser.expect_token(TokenType::Colon)?;
             let rhs = parse(parser)?;
-            return Some(Expr{kind: ExprKind::Choose(ChooseExpression {
-                cond: Box::new(left),
-                lhs: Box::new(lhs),
-                rhs: Box::new(rhs),
-            })});
+            return Some(Expr {
+                kind: ExprKind::Choose(ChooseExpression {
+                    cond: Box::new(left),
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                }),
+            });
         }
         if !is_operator(peek_type) {
             break;
         }
         parser.advance();
         let right = parse_prefix_expression(parser)?;
-        left = Expr{kind: ExprKind::Infix(InfixExpression {
-            left: Box::new(left),
-            operator: peek_type,
-            right: Box::new(right),
-        })}
+        left = Expr {
+            kind: ExprKind::Infix(InfixExpression {
+                left: Box::new(left),
+                operator: peek_type,
+                right: Box::new(right),
+            }),
+        }
     }
     return Some(left);
 }
@@ -80,29 +84,35 @@ fn is_operator(token_type: TokenType) -> bool {
 fn parse_ident_expression(parser: &mut Parser) -> Option<Expr> {
     let name_location = parser.peek_token().location;
     let name = parser.expect_identifier()?;
-    let mut left = Expr{kind: ExprKind::Identifier(IdentifierExpression {
-        name: name,
-        name_location: name_location,
-    })};
+    let mut left = Expr {
+        kind: ExprKind::Identifier(IdentifierExpression {
+            name: name,
+            name_location: name_location,
+        }),
+    };
     loop {
         match parser.peek_token().token_type {
             TokenType::LeftParenthesis => {
                 parser.advance();
                 let arguments =
                     parser.parse_list(|p| p.parse_expression(), TokenType::RightParenthesis)?;
-                left = Expr{kind: ExprKind::Function(FunctionExpression {
-                    callee: Box::new(left),
-                    arguments: arguments,
-                })};
+                left = Expr {
+                    kind: ExprKind::Function(FunctionExpression {
+                        callee: Box::new(left),
+                        arguments: arguments,
+                    }),
+                };
             }
             TokenType::LeftBracket => {
                 parser.advance();
                 let idx = parse_array_subscript(parser)?;
                 parser.expect_token(TokenType::RightBracket)?;
-                left = Expr{kind: ExprKind::ArraySubscript(ArraySubscriptExpression {
-                    base: Box::new(left),
-                    idx: Box::new(idx),
-                })};
+                left = Expr {
+                    kind: ExprKind::ArraySubscript(ArraySubscriptExpression {
+                        base: Box::new(left),
+                        idx: Box::new(idx),
+                    }),
+                };
             }
             _ => return Some(left),
         }
@@ -149,40 +159,48 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
     match token.token_type {
         TokenType::Number => {
             parser.advance();
-            return Some(Expr{kind: ExprKind::Number(NumberExpression {
-                value: parser.l.token_text(&token.location).parse().unwrap(),
-            })});
+            return Some(Expr {
+                kind: ExprKind::Number(NumberExpression {
+                    value: parser.l.token_text(&token.location).parse().unwrap(),
+                }),
+            });
         }
         TokenType::StringLiteral => {
             parser.advance();
-            return Some(Expr{kind: ExprKind::StringLiteral(StringLiteralExpression {
-                value: literal(parser.l.token_text(&token.location)).to_string(),
-            })});
+            return Some(Expr {
+                kind: ExprKind::StringLiteral(StringLiteralExpression {
+                    value: literal(parser.l.token_text(&token.location)).to_string(),
+                }),
+            });
         }
         TokenType::Ident => return parse_ident_expression(parser),
         TokenType::LeftCurlyBrace => {
             parser.advance();
             let entries =
                 parser.parse_list(|p| parse_dictionary_entry(p), TokenType::RightCurlyBrace)?;
-            return Some(Expr{kind: ExprKind::Dictionary(DictionaryExpression {
-                entries: entries,
-            })});
+            return Some(Expr {
+                kind: ExprKind::Dictionary(DictionaryExpression { entries: entries }),
+            });
         }
         TokenType::LeftBracket => return parse_array(parser),
         TokenType::LeftParenthesis => {
             parser.advance();
             let expr = parse(parser)?;
             parser.expect_token(TokenType::RightParenthesis)?;
-            return Some(Expr{kind: ExprKind::Paren(ParenExpression {
-                expr: Box::new(expr),
-            })});
+            return Some(Expr {
+                kind: ExprKind::Paren(ParenExpression {
+                    expr: Box::new(expr),
+                }),
+            });
         }
         TokenType::Minus | TokenType::Bang => {
             parser.advance();
-            return Some(Expr{kind: ExprKind::Unary(UnaryExpression {
-                operator: token.token_type,
-                expr: Box::new(parse_prefix_expression(parser)?),
-            })});
+            return Some(Expr {
+                kind: ExprKind::Unary(UnaryExpression {
+                    operator: token.token_type,
+                    expr: Box::new(parse_prefix_expression(parser)?),
+                }),
+            });
         }
         _ => {
             parser.error_and_recover("expression", token);
@@ -194,7 +212,9 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
 fn parse_array(parser: &mut Parser) -> Option<Expr> {
     parser.expect_token(TokenType::LeftBracket);
     let elements = parser.parse_list(|p| parse(p), TokenType::RightBracket)?;
-    return Some(Expr{kind: ExprKind::Array(ArrayExpression { elements: elements })});
+    return Some(Expr {
+        kind: ExprKind::Array(ArrayExpression { elements: elements }),
+    });
 }
 
 // TODO: this is incorrect, because it does not handle escaping properly.

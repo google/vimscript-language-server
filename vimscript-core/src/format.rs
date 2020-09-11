@@ -18,8 +18,8 @@ use std::io::Write;
 
 pub fn format(program: &Program) -> String {
     let mut w = Vec::new();
-    let mut state = State{
-        options: Options{indent: 2},
+    let mut state = State {
+        options: Options { indent: 2 },
         out: &mut w,
         indent: 0,
     };
@@ -34,7 +34,7 @@ struct Options {
     indent: usize,
 }
 
-struct State<'a, W: Write>{
+struct State<'a, W: Write> {
     options: Options,
     out: &'a mut W,
     // Current identation level
@@ -50,12 +50,28 @@ impl<'a, W: Write> State<'a, W> {
 
     fn format_stmt(&mut self, stmt: &Stmt) {
         return match &stmt.kind {
-            // StmtKind::Function(s) => self.format_statement_function(&s),
-            // StmtKind::If(s) => self.format_if_statement(&s),
-            // StmtKind::Let(s) => self.format_let_statement(&s),
+            StmtKind::Function(s) => self.format_statement_function(&s),
+            StmtKind::If(s) => self.format_if_statement(&s),
+            StmtKind::Let(s) => self.format_let_statement(&s),
             StmtKind::Return(s) => self.format_return_statement(&s),
             _ => panic!("some statement is not supported by formatter yet"),
         };
+    }
+
+    fn format_statement_function(&mut self, stmt: &FunctionStatement) {
+        self.write_indent();
+        write!(self.out, "function ");
+        write!(self.out, "{}", &stmt.name);
+        write!(self.out, "()\n");
+
+        self.indent += 1;
+        for s in &stmt.body {
+            self.format_stmt(&s);
+        }
+        self.indent -= 1;
+
+        self.write_indent();
+        write!(self.out, "endfunction\n");
     }
 
     fn format_return_statement(&mut self, _stmt: &ReturnStatement) {
@@ -65,103 +81,66 @@ impl<'a, W: Write> State<'a, W> {
     }
 
     fn write_indent(&mut self) {
-        write!(self.out, "{}", &" ".repeat(self.options.indent * self.indent));
+        write!(
+            self.out,
+            "{}",
+            &" ".repeat(self.options.indent * self.indent)
+        );
     }
-}
 
-fn format_statement(stmt: &Stmt, spaces: usize) -> String {
-    return match &stmt.kind {
-        StmtKind::Function(s) => format_statement_function(&s, spaces),
-        StmtKind::If(s) => format_if_statement(&s, spaces),
-        StmtKind::Let(s) => format_let_statement(&s, spaces),
-        StmtKind::Return(s) => format_return_statement(&s, spaces),
-        _ => panic!("some statement is not supported by formatter yet"),
-    };
-}
-
-fn format_statement_function(stmt: &FunctionStatement, spaces: usize) -> String {
-    let mut s = String::new();
-    s.push_str(&" ".repeat(spaces * 2));
-    s.push_str("function ");
-    s.push_str(&stmt.name);
-    s.push_str("()\n");
-
-    s.push_str(
-        &stmt
-            .body
-            .iter()
-            .map(|s| return format_statement(s, spaces + 1))
-            .collect::<Vec<String>>()
-            .join(""),
-    );
-
-    s.push_str(&" ".repeat(spaces * 2));
-    s.push_str("endfunction\n");
-    return s;
-}
-
-fn format_expression(expr: &ExprKind) -> String {
-    return match expr {
-        ExprKind::Identifier(e) => e.name().to_string(),
-        ExprKind::Number(e) => e.value().to_string(),
-        _ => "<unknown expression>".to_string(),
-    };
-}
-
-fn format_let_statement(stmt: &LetStatement, spaces: usize) -> String {
-    let mut s = String::new();
-    s.push_str(&" ".repeat(spaces * 2));
-    s.push_str("let ");
-    s.push_str(&format_expression(&stmt.var.kind));
-    s.push_str(" ");
-    s.push_str(stmt.operator.to_str());
-    s.push_str(" ");
-    s.push_str(&format_expression(&stmt.value.kind));
-    s.push_str("\n");
-    return s;
-}
-
-fn format_return_statement(_stmt: &ReturnStatement, spaces: usize) -> String {
-    let mut s = String::new();
-    s.push_str(&" ".repeat(spaces * 2));
-    s.push_str("return");
-    s.push_str("\n");
-    return s;
-}
-
-fn format_if_statement(stmt: &IfStatement, spaces: usize) -> String {
-    let mut s = String::new();
-    s.push_str(&" ".repeat(spaces * 2));
-    s.push_str("if ");
-    s.push_str(&format_expression(&stmt.condition.kind));
-    s.push_str("\n");
-    s.push_str(&format_if_statement_internal(stmt, spaces));
-    s.push_str("endif\n");
-    return s;
-}
-
-fn format_if_statement_internal(stmt: &IfStatement, spaces: usize) -> String {
-    let mut s = String::new();
-    for st in stmt.then.iter() {
-        s.push_str(&format_statement(&st, spaces + 1))
+    fn format_let_statement(&mut self, stmt: &LetStatement) {
+        self.write_indent();
+        write!(self.out, "let ");
+        self.format_expression(&stmt.var.kind);
+        write!(self.out, " ");
+        write!(self.out, "{}", stmt.operator.to_str());
+        write!(self.out, " ");
+        self.format_expression(&stmt.value.kind);
+        write!(self.out, "\n");
     }
-    match &stmt.else_cond {
-        ElseCond::Else(stmts) => {
-            s.push_str(&" ".repeat(spaces * 2));
-            s.push_str("else");
-            s.push_str("\n");
-            for st in stmts.iter() {
-                s.push_str(&format_statement(&st, spaces + 1))
+
+    fn format_expression(&mut self, expr: &ExprKind) {
+        match expr {
+            ExprKind::Identifier(e) => write!(self.out, "{}", e.name().to_string()),
+            ExprKind::Number(e) => write!(self.out, "{}", e.value().to_string()),
+            _ => panic!("unknown expression"),
+        };
+    }
+
+    fn format_if_statement(&mut self, stmt: &IfStatement) {
+        self.write_indent();
+        write!(self.out, "if ");
+        self.format_expression(&stmt.condition.kind);
+        write!(self.out, "\n");
+        self.format_if_statement_internal(stmt);
+        write!(self.out, "endif\n");
+    }
+
+    fn format_if_statement_internal(&mut self, stmt: &IfStatement) {
+        self.indent += 1;
+        for st in stmt.then.iter() {
+            self.format_stmt(&st)
+        }
+        self.indent -= 1;
+        match &stmt.else_cond {
+            ElseCond::Else(stmts) => {
+                self.write_indent();
+                write!(self.out, "else");
+                write!(self.out, "\n");
+                self.indent += 1;
+                for st in stmts.iter() {
+                    self.format_stmt(&st)
+                }
+                self.indent -= 1;
             }
+            ElseCond::ElseIf(stmt) => {
+                write!(self.out, "elseif ");
+                self.format_expression(&stmt.condition.kind);
+                write!(self.out, "\n");
+                self.format_if_statement_internal(stmt);
+            }
+            _ => {}
         }
-        ElseCond::ElseIf(stmt) => {
-            s.push_str("elseif ");
-            s.push_str(&format_expression(&stmt.condition.kind));
-            s.push_str("\n");
-            s.push_str(&format_if_statement_internal(stmt, spaces))
-        }
-        _ => {}
+        self.write_indent();
     }
-    s.push_str(&" ".repeat(spaces * 2));
-    return s;
 }
