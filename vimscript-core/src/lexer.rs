@@ -88,6 +88,7 @@ pub enum TokenType {
     DivideAssign,
     ModuloAssign,
     DotAssign,
+    Comment,
     NewLine,
     Invalid,
     Eof,
@@ -165,6 +166,7 @@ impl TokenType {
             TokenType::DivideAssign => "`/=`",
             TokenType::ModuloAssign => "`%=`",
             TokenType::DotAssign => "`.=`",
+            TokenType::Comment => "comment",
             TokenType::NewLine => "new line",
             TokenType::Invalid => "invalid",
             TokenType::Eof => "end of file",
@@ -538,6 +540,7 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 Some('\n') => {
+                    self.add_token(TokenType::Comment);
                     return;
                 }
                 _ => {
@@ -756,11 +759,12 @@ mod tests {
     }
 
     #[test]
-    fn skips_comments() {
+    fn parses_comments() {
         assert_eq!(
             parse_source(",\" some comment\n="),
             &[
                 (TokenType::Comma, ","),
+                (TokenType::Comment, "\" some comment"),
                 (TokenType::NewLine, "\n"),
                 (TokenType::Assign, "=")
             ],
@@ -885,7 +889,11 @@ mod tests {
     fn includes_new_line_after_comment() {
         assert_eq!(
             parse_source("\"comment\nendif"),
-            &[(TokenType::NewLine, "\n"), (TokenType::EndIf, "endif"),]
+            &[
+                (TokenType::Comment, "\"comment"),
+                (TokenType::NewLine, "\n"),
+                (TokenType::EndIf, "endif"),
+            ]
         )
     }
 
