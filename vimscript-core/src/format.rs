@@ -93,7 +93,8 @@ impl<'a, W: Write> State<'a, W> {
         self.write("let ");
         self.format_expression(&stmt.var.kind);
         self.write(" ");
-        self.write(stmt.operator.to_str());
+        // TODO: Fix it for other operatrs
+        self.write("=");
         self.write(" ");
         self.format_expression(&stmt.value.kind);
         self.write("\n");
