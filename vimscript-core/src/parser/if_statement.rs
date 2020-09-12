@@ -72,11 +72,9 @@ mod tests {
     #[test]
     fn parses_if_statement() {
         let mut parser = Parser::new(Lexer::new(
-            "
-             if l:foo !=# l:bar
+            "if l:foo !=# l:bar
                  call my#method()
-             endif
-             ",
+             endif",
         ));
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);
@@ -107,13 +105,11 @@ mod tests {
     #[test]
     fn parses_if_statement_with_else() {
         let mut parser = Parser::new(Lexer::new(
-            "
-             if l:foo !=# l:bar
+            "if l:foo !=# l:bar
                  call my#method1()
              else
                  call my#method2()
-             endif
-             ",
+             endif",
         ));
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);
@@ -149,15 +145,13 @@ mod tests {
     #[test]
     fn parses_if_statement_with_elseif() {
         let mut parser = Parser::new(Lexer::new(
-            "
-             if l:foo1 !=# l:bar1
+            "if l:foo1 !=# l:bar1
                  call my#method1()
              elseif l:foo2 !=# l:bar2
                  call my#method2()
              else
                  call my#method3()
-             endif
-             ",
+             endif",
         ));
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);

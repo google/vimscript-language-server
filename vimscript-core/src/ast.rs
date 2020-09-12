@@ -44,6 +44,7 @@ pub enum StmtKind {
     Try(TryStatement),
     Set(SetStatement),
     Break(BreakStatement),
+    Empty(),
 }
 
 impl StmtKind {
@@ -58,6 +59,7 @@ impl StmtKind {
             StmtKind::Try(x) => json!({ "try": x.dump_for_testing() }),
             StmtKind::Set(x) => json!({ "set": x.dump_for_testing() }),
             StmtKind::Break(x) => json!({ "break": x.dump_for_testing() }),
+            StmtKind::Empty() => json!("empty"),
             _ => json!({}),
         };
     }

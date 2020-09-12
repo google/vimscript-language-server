@@ -17,6 +17,7 @@ use crate::parser::Parser;
 
 pub fn parse(parser: &mut Parser) -> Option<ReturnStatement> {
     if Parser::end_of_statement_token(parser.peek_token().token_type) {
+        parser.advance();
         return Some(ReturnStatement { value: None });
     }
     let value = parser.parse_expression()?;

@@ -72,11 +72,9 @@ mod tests {
     #[test]
     fn parses_try_statement() {
         let mut parser = Parser::new(Lexer::new(
-            "
-             try
+            "try
                  call my#method()
-             endtry
-             ",
+             endtry",
         ));
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);
@@ -98,13 +96,11 @@ mod tests {
     #[test]
     fn parses_try_statement_with_finally() {
         let mut parser = Parser::new(Lexer::new(
-            "
-             try
+            "try
                  call my#foo()
              finally
                  call my#bar()
-             endtry
-             ",
+             endtry",
         ));
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);

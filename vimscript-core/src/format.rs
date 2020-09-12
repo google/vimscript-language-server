@@ -58,6 +58,7 @@ impl<'a, W: Write> State<'a, W> {
             StmtKind::If(s) => self.format_if_statement(&s),
             StmtKind::Let(s) => self.format_let_statement(&s),
             StmtKind::Return(s) => self.format_return_statement(&s),
+            StmtKind::Empty() => self.write("\n"),
             _ => panic!("some statement is not supported by formatter yet"),
         };
     }

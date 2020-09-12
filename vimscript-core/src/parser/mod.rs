@@ -172,7 +172,11 @@ impl<'a> Parser<'a> {
                     });
                 }
             }
-            TokenType::NewLine => {}
+            TokenType::NewLine => {
+                return Some(Stmt {
+                    kind: StmtKind::Empty(),
+                })
+            }
             TokenType::Pipe => {}
             _ => {
                 self.errors.push(ParseError {
@@ -190,6 +194,7 @@ impl<'a> Parser<'a> {
 
         self.expect_token(TokenType::LeftParenthesis)?;
         let arguments = self.parse_list(|p| p.parse_expression(), TokenType::RightParenthesis)?;
+        self.expect_end_of_statement()?;
 
         return Some(CallStatement {
             name: name,
@@ -514,11 +519,9 @@ mod tests {
     #[test]
     fn parses_function_statement() {
         let mut parser = Parser::new(Lexer::new(
-            "
-            function! my#method(arg1, arg2) abort
+            "function! my#method(arg1, arg2) abort
                 call guess()
-            endfunction
-            ",
+            endfunction",
         ));
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);
@@ -573,11 +576,9 @@ mod tests {
     #[test]
     fn parses_for_statement_with_multiple_variables() {
         let mut parser = Parser::new(Lexer::new(
-            "
-            for [a1, a2, a3] in copy(mylist)
+            "for [a1, a2, a3] in copy(mylist)
                 call guess()
-            endfor
-            ",
+            endfor",
         ));
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);

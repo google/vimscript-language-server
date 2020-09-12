@@ -37,11 +37,9 @@ mod tests {
     #[test]
     fn parses_while_statement() {
         let mut parser = Parser::new(Lexer::new(
-            "
-             while l:foo !=# l:bar
+            "while l:foo !=# l:bar
                  call my#method()
-             endwhile
-             ",
+             endwhile",
         ));
         let program = parser.parse();
         assert_eq!(parser.errors, &[]);
