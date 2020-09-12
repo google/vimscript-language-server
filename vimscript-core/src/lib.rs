@@ -22,4 +22,3 @@ mod peekable_chars_with_position;
 pub mod protocol;
 pub mod rename;
 pub mod server;
-mod token_iterator;

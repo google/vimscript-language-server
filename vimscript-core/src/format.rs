@@ -48,6 +48,10 @@ impl<'a, W: Write> State<'a, W> {
         }
     }
 
+    fn write(&mut self, s: &str) {
+        self.out.write_all(s.as_bytes()).unwrap();
+    }
+
     fn format_stmt(&mut self, stmt: &Stmt) {
         return match &stmt.kind {
             StmtKind::Function(s) => self.format_statement_function(&s),
@@ -60,9 +64,9 @@ impl<'a, W: Write> State<'a, W> {
 
     fn format_statement_function(&mut self, stmt: &FunctionStatement) {
         self.write_indent();
-        write!(self.out, "function ");
-        write!(self.out, "{}", &stmt.name);
-        write!(self.out, "()\n");
+        self.write("function ");
+        self.write(&stmt.name);
+        self.write("()\n");
 
         self.indent += 1;
         for s in &stmt.body {
@@ -71,49 +75,45 @@ impl<'a, W: Write> State<'a, W> {
         self.indent -= 1;
 
         self.write_indent();
-        write!(self.out, "endfunction\n");
+        self.write("endfunction\n");
     }
 
     fn format_return_statement(&mut self, _stmt: &ReturnStatement) {
         self.write_indent();
-        write!(self.out, "return");
-        write!(self.out, "\n");
+        self.write("return");
+        self.write("\n");
     }
 
     fn write_indent(&mut self) {
-        write!(
-            self.out,
-            "{}",
-            &" ".repeat(self.options.indent * self.indent)
-        );
+        self.write(&" ".repeat(self.options.indent * self.indent));
     }
 
     fn format_let_statement(&mut self, stmt: &LetStatement) {
         self.write_indent();
-        write!(self.out, "let ");
+        self.write("let ");
         self.format_expression(&stmt.var.kind);
-        write!(self.out, " ");
-        write!(self.out, "{}", stmt.operator.to_str());
-        write!(self.out, " ");
+        self.write(" ");
+        self.write(stmt.operator.to_str());
+        self.write(" ");
         self.format_expression(&stmt.value.kind);
-        write!(self.out, "\n");
+        self.write("\n");
     }
 
     fn format_expression(&mut self, expr: &ExprKind) {
         match expr {
-            ExprKind::Identifier(e) => write!(self.out, "{}", e.name().to_string()),
-            ExprKind::Number(e) => write!(self.out, "{}", e.value().to_string()),
+            ExprKind::Identifier(e) => self.write(&e.name().to_string()),
+            ExprKind::Number(e) => self.write(&e.value().to_string()),
             _ => panic!("unknown expression"),
         };
     }
 
     fn format_if_statement(&mut self, stmt: &IfStatement) {
         self.write_indent();
-        write!(self.out, "if ");
+        self.write("if ");
         self.format_expression(&stmt.condition.kind);
-        write!(self.out, "\n");
+        self.write("\n");
         self.format_if_statement_internal(stmt);
-        write!(self.out, "endif\n");
+        self.write("endif\n");
     }
 
     fn format_if_statement_internal(&mut self, stmt: &IfStatement) {
@@ -125,8 +125,7 @@ impl<'a, W: Write> State<'a, W> {
         match &stmt.else_cond {
             ElseCond::Else(stmts) => {
                 self.write_indent();
-                write!(self.out, "else");
-                write!(self.out, "\n");
+                self.write("else\n");
                 self.indent += 1;
                 for st in stmts.iter() {
                     self.format_stmt(&st)
@@ -134,9 +133,9 @@ impl<'a, W: Write> State<'a, W> {
                 self.indent -= 1;
             }
             ElseCond::ElseIf(stmt) => {
-                write!(self.out, "elseif ");
+                self.write("elseif ");
                 self.format_expression(&stmt.condition.kind);
-                write!(self.out, "\n");
+                self.write("\n");
                 self.format_if_statement_internal(stmt);
             }
             _ => {}

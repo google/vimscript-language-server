@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use crate::ast::Stmt;
-use crate::ast::StmtKind;
 use crate::ast::TryStatement;
 use crate::lexer::TokenType;
 use crate::parser::Parser;
