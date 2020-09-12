@@ -29,6 +29,8 @@ impl Stmt {
     }
 }
 
+pub struct NodeId(pub u32);
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum StmtKind {
     Let(LetStatement),
