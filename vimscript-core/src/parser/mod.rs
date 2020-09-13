@@ -172,6 +172,7 @@ impl<'a> Parser<'a> {
                     });
                 }
             }
+            TokenType::Comment => {}
             TokenType::NewLine => {
                 return Some(Stmt {
                     kind: StmtKind::Empty(),

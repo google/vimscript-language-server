@@ -74,6 +74,7 @@ impl State {
                 "initialize" => {
                     req.response_handle.respond(Ok(json!({"capabilities": {
                         "renameProvider": true,
+                        "documentHighlightProvider": true,
                     }})));
                 }
                 "textDocument/rename" => {
