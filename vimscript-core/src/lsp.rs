@@ -26,6 +26,8 @@ use lsp_types::Diagnostic;
 use lsp_types::DiagnosticSeverity;
 use lsp_types::DidChangeTextDocumentParams;
 use lsp_types::DidOpenTextDocumentParams;
+use lsp_types::DocumentHighlight;
+use lsp_types::DocumentHighlightParams;
 use lsp_types::Position;
 use lsp_types::PublishDiagnosticsParams;
 use lsp_types::RenameParams;
@@ -79,6 +81,9 @@ impl State {
                 }
                 "textDocument/rename" => {
                     self.handle_rename(req);
+                }
+                "textDocument/documentHighlight" => {
+                    self.handle_document_highlight(req);
                 }
                 method => {
                     eprintln!("Unrecognized request: {}", method);
@@ -138,16 +143,41 @@ impl State {
     fn handle_rename(&self, req: Request) {
         // TODO: This doesn't work yet, it is still WIP!
         let params: RenameParams = serde_json::from_value(req.params.clone()).unwrap();
-        let content = self.files.get(params.text_document.uri.as_str()).unwrap();
-        let edits = rename(content, params.position, &params.new_name).unwrap();
+        let content = self
+            .files
+            .get(params.text_document_position.text_document.uri.as_str())
+            .unwrap();
+        let edits = rename(
+            content,
+            params.text_document_position.position,
+            &params.new_name,
+        )
+        .unwrap();
         let mut changes = HashMap::new();
-        changes.insert(params.text_document.uri, edits);
+        changes.insert(params.text_document_position.text_document.uri, edits);
         req.response_handle
             .respond(Ok(serde_json::to_value(WorkspaceEdit {
                 changes: Some(changes),
                 document_changes: None,
             })
             .unwrap()))
+    }
+
+    fn handle_document_highlight(&self, req: Request) {
+        // TODO: This doesn't work yet, it is still WIP!
+        let params: DocumentHighlightParams = serde_json::from_value(req.params.clone()).unwrap();
+        let start = params.text_document_position_params.position;
+        let mut end = params.text_document_position_params.position;
+        end.character += 2;
+        req.response_handle
+            .respond(Ok(serde_json::to_value(vec![DocumentHighlight {
+                kind: None,
+                range: Range {
+                    start: start,
+                    end: end,
+                },
+            }])
+            .unwrap()));
     }
 }
 
@@ -157,6 +187,7 @@ fn publish_diagnostics(text: &str, uri: Url, sender: &LspSender) {
     let mut diagnostics_params = PublishDiagnosticsParams {
         uri: uri,
         diagnostics: Vec::new(),
+        version: None,
     };
     for error in parser.errors {
         diagnostics_params.diagnostics.push(Diagnostic {
@@ -166,6 +197,7 @@ fn publish_diagnostics(text: &str, uri: Url, sender: &LspSender) {
             related_information: None,
             severity: Some(DiagnosticSeverity::Error),
             source: None,
+            tags: None,
         });
     }
     sender.send_notification(
