@@ -26,8 +26,6 @@ use lsp_types::Diagnostic;
 use lsp_types::DiagnosticSeverity;
 use lsp_types::DidChangeTextDocumentParams;
 use lsp_types::DidOpenTextDocumentParams;
-use lsp_types::DocumentHighlight;
-use lsp_types::DocumentHighlightParams;
 use lsp_types::Position;
 use lsp_types::PublishDiagnosticsParams;
 use lsp_types::RenameParams;
@@ -164,20 +162,8 @@ impl State {
     }
 
     fn handle_document_highlight(&self, req: Request) {
-        // TODO: This doesn't work yet, it is still WIP!
-        let params: DocumentHighlightParams = serde_json::from_value(req.params.clone()).unwrap();
-        let start = params.text_document_position_params.position;
-        let mut end = params.text_document_position_params.position;
-        end.character += 2;
         req.response_handle
-            .respond(Ok(serde_json::to_value(vec![DocumentHighlight {
-                kind: None,
-                range: Range {
-                    start: start,
-                    end: end,
-                },
-            }])
-            .unwrap()));
+            .respond(Ok(serde_json::Value::Null));
     }
 }
 
