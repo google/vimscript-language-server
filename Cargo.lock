@@ -48,6 +48,10 @@ version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "lsp-tee"
+version = "0.1.0"
+
+[[package]]
 name = "lsp-types"
 version = "0.57.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
