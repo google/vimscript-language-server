@@ -25,13 +25,14 @@ use crate::server::Write;
 use crate::source_map::SourceMap;
 use lsp_types::Diagnostic;
 use lsp_types::DiagnosticSeverity;
+use lsp_types::DocumentHighlightParams;
+use lsp_types::DocumentHighlight;
 use lsp_types::DidChangeTextDocumentParams;
 use lsp_types::DidOpenTextDocumentParams;
 use lsp_types::Position;
 use lsp_types::PublishDiagnosticsParams;
 use lsp_types::RenameParams;
 use lsp_types::WorkspaceEdit;
-
 use lsp_types::Range;
 use lsp_types::Url;
 use serde_json::json;
@@ -163,8 +164,27 @@ impl State {
     }
 
     fn handle_document_highlight(&self, req: Request) {
+        // TODO: This doesn't work yet, it is still WIP!
+        let params: DocumentHighlightParams = serde_json::from_value(req.params.clone()).unwrap();
+        let content = self
+            .source_map
+            .get_content(&params.text_document_position_params.text_document.uri)
+            .unwrap();
+
+        let mut parser = Parser::new(Lexer::new(&content));
+        let _program = parser.parse();
+
+        let start = params.text_document_position_params.position;
+        let mut end = params.text_document_position_params.position;
+        end.character += 2;
         req.response_handle
-            .respond(Ok(serde_json::Value::Null));
+            .respond(Ok(serde_json::to_value(vec![DocumentHighlight {
+                kind: None,
+                range: Range {
+                    start: start,
+                    end: end,
+                },
+            }]).unwrap()))
     }
 }
 
@@ -284,6 +304,101 @@ mod tests {
             }))
             .unwrap();
         client.recv().unwrap();
+        client
+            .send(json!({
+                "jsonrpc": "2.0",
+                "method": "exit",
+            }))
+            .unwrap();
+
+        t.join().unwrap();
+    }
+
+    #[test]
+    // TODO: document highlights do not work yet, we need to add following capabilities first:
+    // - add Span to Stmt and Expr
+    // - find Stmt/Expr by Position
+    // TODO: similar tests that should be added
+    // - if cursor is not on the variable, do not return highlight
+    // - do not highlight if there is only one variable
+    #[ignore]
+    fn document_hightlight_highlights_the_same_variable() {
+        // TODO: This has to be refactor to make writing tests easy.
+        let (client, server) = create_client_and_server();
+        let t = std::thread::spawn(move || {
+            run(server);
+        });
+
+        // Initialize
+        client
+            .send(json!({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "processId": serde_json::Value::Null,
+                    "rootUri": serde_json::Value::Null,
+                    "capabilities": {
+                    },
+                },
+            }))
+            .unwrap();
+        // Receive initialized
+        // TODO: verify this.
+        client.recv().unwrap();
+
+        // Open document (notification)
+        client
+            .send(json!({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "textDocument/didOpen",
+                "params": {
+                    "textDocument": {
+                        "uri": "file:///home/user/test.vim",
+                        "languageId": "vim",
+                        "version": 1,
+                        "text": "let myvar = 1\nlet myvar = 2\n",
+                    },
+                },
+            }))
+            .unwrap();
+
+        // Request hightlights
+        client
+            .send(json!({
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "textDocument/documentHighlight",
+                "params": {
+                    "textDocument": {
+                        "uri": "file:///home/user/test.vim",
+                    },
+                    "position": {
+                        "line": 0,
+                        "character": 5,
+                    },
+                },
+            }))
+            .unwrap();
+        let response = client.recv().unwrap();
+        let result = response.get("result").unwrap().clone();
+        let x: Vec<DocumentHighlight> = serde_json::from_value(result).unwrap();
+        assert_eq!(x, vec![DocumentHighlight{
+                kind: None,
+                range: Range {
+                    start: Position {
+                        line: 0,
+                        character: 4,
+                    },
+                    end: Position {
+                        line: 0,
+                        character: 9,
+                    },
+                },
+        }]);
+
+        // Exit
         client
             .send(json!({
                 "jsonrpc": "2.0",

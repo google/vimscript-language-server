@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use lsp_types::Url;
-
 use std::collections::HashMap;
 
 pub struct SourceMap {
