@@ -22,6 +22,7 @@ use crate::server::Read;
 use crate::server::Request;
 use crate::server::Server;
 use crate::server::Write;
+use crate::source_map::SourceMap;
 use lsp_types::Diagnostic;
 use lsp_types::DiagnosticSeverity;
 use lsp_types::DidChangeTextDocumentParams;
@@ -41,7 +42,7 @@ use std::collections::HashMap;
 /// This method finishes when `exit` notification is received.
 pub fn run<R: Read, W: Write + Send + 'static>(server: Server<R, W>) {
     let mut state = State {
-        files: HashMap::new(),
+        source_map: SourceMap::new(),
         sender: server.sender(),
     };
     for msg in server {
@@ -50,7 +51,7 @@ pub fn run<R: Read, W: Write + Send + 'static>(server: Server<R, W>) {
 }
 
 struct State {
-    files: HashMap<String, String>,
+    source_map: SourceMap,
     sender: LspSender,
 }
 
@@ -107,8 +108,8 @@ impl State {
     }
 
     fn handle_did_open(&mut self, params: DidOpenTextDocumentParams) {
-        self.files.insert(
-            params.text_document.uri.as_str().to_string(),
+        self.source_map.add(
+            &params.text_document.uri,
             params.text_document.text.to_string(),
         );
 
@@ -127,8 +128,8 @@ impl State {
         if !params.content_changes[0].range.is_none() {
             panic!("unsupported partial content change");
         }
-        self.files.insert(
-            params.text_document.uri.as_str().to_string(),
+        self.source_map.add(
+            &params.text_document.uri,
             params.content_changes[0].text.to_string(),
         );
         publish_diagnostics(
@@ -142,11 +143,11 @@ impl State {
         // TODO: This doesn't work yet, it is still WIP!
         let params: RenameParams = serde_json::from_value(req.params.clone()).unwrap();
         let content = self
-            .files
-            .get(params.text_document_position.text_document.uri.as_str())
+            .source_map
+            .get_content(&params.text_document_position.text_document.uri)
             .unwrap();
         let edits = rename(
-            content,
+            &content,
             params.text_document_position.position,
             &params.new_name,
         )

@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC
+// Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,14 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub mod ast;
-pub mod format;
-pub mod lexer;
-pub mod lsp;
-pub mod parser;
-mod peekable_chars_with_position;
-pub mod protocol;
-pub mod rename;
-pub mod server;
-pub mod source_map;
-pub mod span;
+use lsp_types::Url;
+
+use std::collections::HashMap;
+
+pub struct SourceMap {
+    files: HashMap<Url, String>,
+}
+
+impl SourceMap {
+    pub fn new() -> SourceMap {
+        SourceMap { files: HashMap::new() }
+    }
+
+    pub fn add(&mut self, uri: &Url, content: String) {
+        self.files.insert(uri.clone(), content);
+    }
+
+    pub fn get_content(&self, uri: &Url) -> Option<String> {
+        Some(self.files.get(uri)?.to_string())
+    }
+}
