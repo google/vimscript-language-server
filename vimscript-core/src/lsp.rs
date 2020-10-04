@@ -21,6 +21,7 @@ use crate::server::Message;
 use crate::server::Read;
 use crate::server::Request;
 use crate::server::Server;
+use crate::lexer::SourcePosition;
 use crate::server::Write;
 use crate::source_map::SourceMap;
 use lsp_types::Diagnostic;
@@ -37,6 +38,7 @@ use lsp_types::Url;
 use lsp_types::WorkspaceEdit;
 use serde_json::json;
 use std::collections::HashMap;
+use std::convert::TryFrom;
 
 /// Runs the main loop of the LSP server.
 ///
@@ -171,19 +173,19 @@ impl State {
             .get_content(&params.text_document_position_params.text_document.uri)
             .unwrap();
 
-        let mut parser = Parser::new(Lexer::new(&content));
-        let _program = parser.parse();
+        let parser = Parser::new(Lexer::new(&content));
+        // let program = parser.parse();
+        let pos = params.text_document_position_params.position;
+        let token = parser.find_token(SourcePosition{
+            line: i32::try_from(pos.line).unwrap(),
+            character: i32::try_from(pos.character).unwrap(),
+        }).unwrap();
+        let token_position = parser.resolve_location(token.location);
 
-        let start = params.text_document_position_params.position;
-        let mut end = params.text_document_position_params.position;
-        end.character += 2;
         req.response_handle
             .respond(Ok(serde_json::to_value(vec![DocumentHighlight {
                 kind: None,
-                range: Range {
-                    start: start,
-                    end: end,
-                },
+                range: token_position_to_range(&token_position),
             }])
             .unwrap()))
     }
@@ -316,13 +318,6 @@ mod tests {
     }
 
     #[test]
-    // TODO: document highlights do not work yet, we need to add following capabilities first:
-    // - add Span to Stmt and Expr
-    // - find Stmt/Expr by Position
-    // TODO: similar tests that should be added
-    // - if cursor is not on the variable, do not return highlight
-    // - do not highlight if there is only one variable
-    #[ignore]
     fn document_hightlight_highlights_the_same_variable() {
         // TODO: This has to be refactor to make writing tests easy.
         let (client, server) = create_client_and_server();
@@ -352,7 +347,6 @@ mod tests {
         client
             .send(json!({
                 "jsonrpc": "2.0",
-                "id": 1,
                 "method": "textDocument/didOpen",
                 "params": {
                     "textDocument": {
@@ -364,6 +358,8 @@ mod tests {
                 },
             }))
             .unwrap();
+        // Diagnostic notification
+        client.recv().unwrap();
 
         // Request hightlights
         client
@@ -385,6 +381,8 @@ mod tests {
         let response = client.recv().unwrap();
         let result = response.get("result").unwrap().clone();
         let x: Vec<DocumentHighlight> = serde_json::from_value(result).unwrap();
+        // TODO: This is invalid response, we should actually report both variables not just the
+        // first one.
         assert_eq!(
             x,
             vec![DocumentHighlight {
