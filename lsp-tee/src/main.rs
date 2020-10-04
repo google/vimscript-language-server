@@ -125,7 +125,9 @@ struct LspMessage {
 }
 
 fn main() {
-    let first_arg = env::args().skip(1).next()
+    let first_arg = env::args()
+        .skip(1)
+        .next()
         .expect("command line is missing '--' and the name of the command to run");
     let mut output = "lsp-tee.txt".to_string();
     if first_arg != "--" {

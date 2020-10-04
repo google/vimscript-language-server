@@ -25,16 +25,16 @@ use crate::server::Write;
 use crate::source_map::SourceMap;
 use lsp_types::Diagnostic;
 use lsp_types::DiagnosticSeverity;
-use lsp_types::DocumentHighlightParams;
-use lsp_types::DocumentHighlight;
 use lsp_types::DidChangeTextDocumentParams;
 use lsp_types::DidOpenTextDocumentParams;
+use lsp_types::DocumentHighlight;
+use lsp_types::DocumentHighlightParams;
 use lsp_types::Position;
 use lsp_types::PublishDiagnosticsParams;
-use lsp_types::RenameParams;
-use lsp_types::WorkspaceEdit;
 use lsp_types::Range;
+use lsp_types::RenameParams;
 use lsp_types::Url;
+use lsp_types::WorkspaceEdit;
 use serde_json::json;
 use std::collections::HashMap;
 
@@ -184,7 +184,8 @@ impl State {
                     start: start,
                     end: end,
                 },
-            }]).unwrap()))
+            }])
+            .unwrap()))
     }
 }
 
@@ -384,7 +385,9 @@ mod tests {
         let response = client.recv().unwrap();
         let result = response.get("result").unwrap().clone();
         let x: Vec<DocumentHighlight> = serde_json::from_value(result).unwrap();
-        assert_eq!(x, vec![DocumentHighlight{
+        assert_eq!(
+            x,
+            vec![DocumentHighlight {
                 kind: None,
                 range: Range {
                     start: Position {
@@ -396,7 +399,8 @@ mod tests {
                         character: 9,
                     },
                 },
-        }]);
+            }]
+        );
 
         // Exit
         client

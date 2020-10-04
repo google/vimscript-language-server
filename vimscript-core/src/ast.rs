@@ -14,11 +14,13 @@
 
 use crate::lexer::SourceLocation;
 use crate::lexer::TokenType;
+use crate::span::Span;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Stmt {
+    pub span: Span,
     // TODO: Add `id`, `span` and `comments` fields.
     pub kind: StmtKind,
 }

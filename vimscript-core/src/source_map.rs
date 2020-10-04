@@ -21,7 +21,9 @@ pub struct SourceMap {
 
 impl SourceMap {
     pub fn new() -> SourceMap {
-        SourceMap { files: HashMap::new() }
+        SourceMap {
+            files: HashMap::new(),
+        }
     }
 
     pub fn add(&mut self, uri: &Url, content: String) {

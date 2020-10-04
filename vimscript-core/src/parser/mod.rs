@@ -19,7 +19,10 @@ use crate::lexer::SourcePosition;
 use crate::lexer::Token;
 use crate::lexer::TokenPosition;
 use crate::lexer::TokenType;
+use crate::span::BytePos;
+use crate::span::Span;
 use serde_json::json;
+use std::convert::TryInto;
 use std::iter::Iterator;
 use std::iter::Peekable;
 
@@ -56,6 +59,7 @@ pub struct Parser<'a> {
     pub l: Lexer<'a>,
     tokens: Vec<Token>,
     lexer: Peekable<std::vec::IntoIter<Token>>,
+    last_pos: BytePos,
     pub errors: Vec<ParseError>,
 }
 
@@ -66,6 +70,7 @@ impl<'a> Parser<'a> {
             l: lexer,
             tokens: tokens.clone(),
             lexer: tokens.into_iter().peekable(),
+            last_pos: BytePos(0),
             errors: Vec::new(),
         };
     }
@@ -101,10 +106,15 @@ impl<'a> Parser<'a> {
     // Returns None when statement failed to parse.
     fn parse_statement(&mut self) -> Option<Stmt> {
         let token = self.lexer.next()?;
+        let start = BytePos(token.location.range.start.try_into().unwrap());
         match token.token_type {
             TokenType::Let => {
                 if let Some(stmt) = self.parse_let_statement() {
                     return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
                         kind: StmtKind::Let(stmt),
                     });
                 }
@@ -112,12 +122,20 @@ impl<'a> Parser<'a> {
             TokenType::Break => {
                 self.expect_end_of_statement()?;
                 return Some(Stmt {
+                    span: Span {
+                        start: start,
+                        end: self.last_pos,
+                    },
                     kind: StmtKind::Break(BreakStatement {}),
                 });
             }
             TokenType::Call => {
                 if let Some(stmt) = self.parse_call_statement() {
                     return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
                         kind: StmtKind::Call(stmt),
                     });
                 }
@@ -125,6 +143,10 @@ impl<'a> Parser<'a> {
             TokenType::Return => {
                 if let Some(stmt) = return_statement::parse(self) {
                     return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
                         kind: StmtKind::Return(stmt),
                     });
                 }
@@ -132,6 +154,10 @@ impl<'a> Parser<'a> {
             TokenType::Try => {
                 if let Some(stmt) = try_statement::parse(self) {
                     return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
                         kind: StmtKind::Try(stmt),
                     });
                 }
@@ -139,14 +165,32 @@ impl<'a> Parser<'a> {
             TokenType::Set => {
                 if let Some(stmt) = set_statement::parse(self) {
                     return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
                         kind: StmtKind::Set(stmt),
                     });
                 }
             }
-            TokenType::Execute => return self.parse_execute_statement(),
+            TokenType::Execute => {
+                if let Some(stmt) = self.parse_execute_statement() {
+                    return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
+                        kind: StmtKind::Execute(stmt),
+                    });
+                }
+            }
             TokenType::If => {
                 if let Some(stmt) = self.parse_if_statement() {
                     return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
                         kind: StmtKind::If(stmt),
                     });
                 }
@@ -154,6 +198,10 @@ impl<'a> Parser<'a> {
             TokenType::Function => {
                 if let Some(stmt) = self.parse_function_statement() {
                     return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
                         kind: StmtKind::Function(stmt),
                     });
                 }
@@ -161,6 +209,10 @@ impl<'a> Parser<'a> {
             TokenType::For => {
                 if let Some(stmt) = self.parse_for_statement() {
                     return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
                         kind: StmtKind::For(stmt),
                     });
                 }
@@ -168,6 +220,10 @@ impl<'a> Parser<'a> {
             TokenType::While => {
                 if let Some(stmt) = while_statement::parse(self) {
                     return Some(Stmt {
+                        span: Span {
+                            start: start,
+                            end: self.last_pos,
+                        },
                         kind: StmtKind::While(stmt),
                     });
                 }
@@ -175,6 +231,10 @@ impl<'a> Parser<'a> {
             TokenType::Comment => {}
             TokenType::NewLine => {
                 return Some(Stmt {
+                    span: Span {
+                        start: start,
+                        end: self.last_pos,
+                    },
                     kind: StmtKind::Empty(),
                 })
             }
@@ -207,17 +267,15 @@ impl<'a> Parser<'a> {
         return token == TokenType::NewLine || token == TokenType::Eof || token == TokenType::Pipe;
     }
 
-    fn parse_execute_statement(&mut self) -> Option<Stmt> {
+    fn parse_execute_statement(&mut self) -> Option<ExecuteStatement> {
         let mut arguments = Vec::new();
         while !Parser::end_of_statement_token(self.peek_token().token_type) {
             arguments.push(self.parse_expression()?);
         }
 
-        return Some(Stmt {
-            kind: StmtKind::Execute(ExecuteStatement {
-                arguments: arguments,
-            }),
-        });
+        Some(ExecuteStatement {
+            arguments: arguments,
+        })
     }
 
     // Let = 'let' VarName = ExprKind (NewLine | EOF)
@@ -431,6 +489,9 @@ impl<'a> Parser<'a> {
     }
 
     pub fn advance(&mut self) {
+        if let Some(token) = self.lexer.peek() {
+            self.last_pos = BytePos(token.location.range.end.try_into().unwrap());
+        }
         self.lexer.next();
     }
 
@@ -529,10 +590,18 @@ mod tests {
         assert_eq!(
             program.statements,
             &[Stmt {
+                span: Span {
+                    start: BytePos(0),
+                    end: BytePos(90)
+                },
                 kind: StmtKind::Function(FunctionStatement {
                     name: "my#method".to_string(),
                     arguments: vec!["arg1".to_string(), "arg2".to_string()],
                     body: vec![Stmt {
+                        span: Span {
+                            start: BytePos(54),
+                            end: BytePos(67)
+                        },
                         kind: StmtKind::Call(CallStatement {
                             name: "guess".to_string(),
                             arguments: vec![],
@@ -599,6 +668,10 @@ mod tests {
         assert_eq!(
             for_stmt.body,
             vec![Stmt {
+                span: Span {
+                    start: BytePos(49),
+                    end: BytePos(62)
+                },
                 kind: StmtKind::Call(CallStatement {
                     name: "guess".to_string(),
                     arguments: vec![],

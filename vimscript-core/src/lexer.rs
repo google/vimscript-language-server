@@ -177,7 +177,7 @@ impl TokenType {
 /// Location in a source code (most of the time points to the start of the token).
 #[derive(PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub struct SourceLocation {
-    range: std::ops::Range<usize>,
+    pub range: std::ops::Range<usize>,
 }
 
 #[derive(PartialEq, Debug)]

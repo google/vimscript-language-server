@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use serde::{Deserialize, Serialize};
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct BytePos(pub u32);
 
+/// Span represents [start, end) range in a document.
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Span {
     pub start: BytePos,
     pub end: BytePos,
