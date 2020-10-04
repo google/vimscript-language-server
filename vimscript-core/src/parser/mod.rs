@@ -59,7 +59,7 @@ pub struct Parser<'a> {
     pub l: Lexer<'a>,
     tokens: Vec<Token>,
     lexer: Peekable<std::vec::IntoIter<Token>>,
-    last_pos: BytePos,
+    pub last_pos: BytePos,
     pub errors: Vec<ParseError>,
 }
 

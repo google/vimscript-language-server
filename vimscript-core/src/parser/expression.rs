@@ -15,6 +15,9 @@
 use crate::ast::*;
 use crate::lexer::TokenType;
 use crate::parser::Parser;
+use crate::span::BytePos;
+use crate::span::Span;
+use std::convert::TryInto;
 
 pub fn parse(parser: &mut Parser) -> Option<Expr> {
     let mut left = parse_prefix_expression(parser)?;
@@ -27,6 +30,10 @@ pub fn parse(parser: &mut Parser) -> Option<Expr> {
             parser.expect_token(TokenType::Colon)?;
             let rhs = parse(parser)?;
             return Some(Expr {
+                span: Span {
+                    start: lhs.span.start,
+                    end: rhs.span.end,
+                },
                 kind: ExprKind::Choose(ChooseExpression {
                     cond: Box::new(left),
                     lhs: Box::new(lhs),
@@ -40,6 +47,10 @@ pub fn parse(parser: &mut Parser) -> Option<Expr> {
         parser.advance();
         let right = parse_prefix_expression(parser)?;
         left = Expr {
+            span: Span {
+                start: left.span.start,
+                end: right.span.end,
+            },
             kind: ExprKind::Infix(InfixExpression {
                 left: Box::new(left),
                 operator: peek_type,
@@ -83,8 +94,13 @@ fn is_operator(token_type: TokenType) -> bool {
 // - function call
 fn parse_ident_expression(parser: &mut Parser) -> Option<Expr> {
     let name_location = parser.peek_token().location;
+    let start = BytePos(name_location.range.start.try_into().unwrap());
     let name = parser.expect_identifier()?;
     let mut left = Expr {
+        span: Span {
+            start: start,
+            end: parser.last_pos,
+        },
         kind: ExprKind::Identifier(IdentifierExpression {
             name: name,
             name_location: name_location,
@@ -97,6 +113,10 @@ fn parse_ident_expression(parser: &mut Parser) -> Option<Expr> {
                 let arguments =
                     parser.parse_list(|p| p.parse_expression(), TokenType::RightParenthesis)?;
                 left = Expr {
+                    span: Span {
+                        start: start,
+                        end: parser.last_pos,
+                    },
                     kind: ExprKind::Function(FunctionExpression {
                         callee: Box::new(left),
                         arguments: arguments,
@@ -108,6 +128,10 @@ fn parse_ident_expression(parser: &mut Parser) -> Option<Expr> {
                 let idx = parse_array_subscript(parser)?;
                 parser.expect_token(TokenType::RightBracket)?;
                 left = Expr {
+                    span: Span {
+                        start: start,
+                        end: parser.last_pos,
+                    },
                     kind: ExprKind::ArraySubscript(ArraySubscriptExpression {
                         base: Box::new(left),
                         idx: Box::new(idx),
@@ -156,10 +180,15 @@ fn parse_dictionary_entry(parser: &mut Parser) -> Option<DictionaryEntry> {
 
 fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
     let token = parser.peek_token();
+    let start = BytePos(token.location.range.start.try_into().unwrap());
     match token.token_type {
         TokenType::Number => {
             parser.advance();
             return Some(Expr {
+                span: Span {
+                    start: start,
+                    end: parser.last_pos,
+                },
                 kind: ExprKind::Number(NumberExpression {
                     value: parser.l.token_text(&token.location).parse().unwrap(),
                 }),
@@ -168,6 +197,10 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
         TokenType::StringLiteral => {
             parser.advance();
             return Some(Expr {
+                span: Span {
+                    start: start,
+                    end: parser.last_pos,
+                },
                 kind: ExprKind::StringLiteral(StringLiteralExpression {
                     value: literal(parser.l.token_text(&token.location)).to_string(),
                 }),
@@ -179,6 +212,10 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
             let entries =
                 parser.parse_list(|p| parse_dictionary_entry(p), TokenType::RightCurlyBrace)?;
             return Some(Expr {
+                span: Span {
+                    start: start,
+                    end: parser.last_pos,
+                },
                 kind: ExprKind::Dictionary(DictionaryExpression { entries: entries }),
             });
         }
@@ -188,6 +225,10 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
             let expr = parse(parser)?;
             parser.expect_token(TokenType::RightParenthesis)?;
             return Some(Expr {
+                span: Span {
+                    start: start,
+                    end: parser.last_pos,
+                },
                 kind: ExprKind::Paren(ParenExpression {
                     expr: Box::new(expr),
                 }),
@@ -196,6 +237,10 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
         TokenType::Minus | TokenType::Bang => {
             parser.advance();
             return Some(Expr {
+                span: Span {
+                    start: start,
+                    end: parser.last_pos,
+                },
                 kind: ExprKind::Unary(UnaryExpression {
                     operator: token.token_type,
                     expr: Box::new(parse_prefix_expression(parser)?),
@@ -210,9 +255,15 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
 }
 
 fn parse_array(parser: &mut Parser) -> Option<Expr> {
+    let token = parser.peek_token();
+    let start = BytePos(token.location.range.start.try_into().unwrap());
     parser.expect_token(TokenType::LeftBracket);
     let elements = parser.parse_list(|p| parse(p), TokenType::RightBracket)?;
     return Some(Expr {
+        span: Span {
+            start: start,
+            end: parser.last_pos,
+        },
         kind: ExprKind::Array(ArrayExpression { elements: elements }),
     });
 }

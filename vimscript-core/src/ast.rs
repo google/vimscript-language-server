@@ -256,6 +256,7 @@ impl WhileStatement {
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expr {
     // TODO: Add `id`, `span` and `comments` fields.
+    pub span: Span,
     pub kind: ExprKind,
 }
 
