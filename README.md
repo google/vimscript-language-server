@@ -1,3 +1,5 @@
+[![Build Status](https://github.com/google/vimscript-language-server/workflows/Rust/badge.svg)](https://github.com/google/vimscript-language-server/actions)
+
 # Vimscript Language Server
 
 Implementation of Language Server protocol for vimscript / vimL language in
