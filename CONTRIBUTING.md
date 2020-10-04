@@ -26,3 +26,46 @@ information on using pull requests.
 
 This project follows [Google's Open Source Community
 Guidelines](https://opensource.google/conduct/).
+
+## Building
+
+### Install rust
+
+Follow instructions on https://www.rust-lang.org/tools/install to install rust.
+
+### Setup a fork
+
+1. Create a fork (click Fork button in github)
+
+2. Download fork
+
+```shell
+$ git checkout git@github.com:YOUR_USERNAME/vimscript-language-server.git
+```
+
+3. Specify a new remote `upstream`
+
+```shell
+$ git remote add upstream https://github.com/google/vimscript-language-server.git
+```
+
+To sync a fork, run:
+
+```shell
+$ git checkout master
+$ git fetch upstream master
+$ git rebase upstream/master
+```
+
+To sync your feature branch, run:
+
+```shell
+$ git checkout my_feature
+$ git rebase master
+```
+
+### Verify everything works
+
+```shell
+$ cargo test
+```
