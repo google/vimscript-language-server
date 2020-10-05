@@ -18,8 +18,12 @@ use crate::span::Span;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone, Copy)]
+pub struct NodeId(pub u32);
+
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Stmt {
+    pub id: NodeId,
     pub span: Span,
     // TODO: Add `id`, `span` and `comments` fields.
     pub kind: StmtKind,
@@ -30,8 +34,6 @@ impl Stmt {
         return self.kind.dump_for_testing();
     }
 }
-
-pub struct NodeId(pub u32);
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub enum StmtKind {

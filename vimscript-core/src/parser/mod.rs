@@ -61,6 +61,7 @@ pub struct Parser<'a> {
     lexer: Peekable<std::vec::IntoIter<Token>>,
     pub last_pos: BytePos,
     pub errors: Vec<ParseError>,
+    id: NodeId,
 }
 
 impl<'a> Parser<'a> {
@@ -72,6 +73,7 @@ impl<'a> Parser<'a> {
             lexer: tokens.into_iter().peekable(),
             last_pos: BytePos(0),
             errors: Vec::new(),
+            id: NodeId(0),
         };
     }
 
@@ -102,6 +104,11 @@ impl<'a> Parser<'a> {
         Err(())
     }
 
+    fn next_id(&mut self) -> NodeId {
+        self.id = NodeId(self.id.0 + 1);
+        self.id
+    }
+
     // Parses a statement, including the new line at the end of statement.
     // Returns None when statement failed to parse.
     fn parse_statement(&mut self) -> Option<Stmt> {
@@ -111,6 +118,7 @@ impl<'a> Parser<'a> {
             TokenType::Let => {
                 if let Some(stmt) = self.parse_let_statement() {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -122,6 +130,7 @@ impl<'a> Parser<'a> {
             TokenType::Break => {
                 self.expect_end_of_statement()?;
                 return Some(Stmt {
+                    id: self.next_id(),
                     span: Span {
                         start: start,
                         end: self.last_pos,
@@ -132,6 +141,7 @@ impl<'a> Parser<'a> {
             TokenType::Call => {
                 if let Some(stmt) = self.parse_call_statement() {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -143,6 +153,7 @@ impl<'a> Parser<'a> {
             TokenType::Return => {
                 if let Some(stmt) = return_statement::parse(self) {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -154,6 +165,7 @@ impl<'a> Parser<'a> {
             TokenType::Try => {
                 if let Some(stmt) = try_statement::parse(self) {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -165,6 +177,7 @@ impl<'a> Parser<'a> {
             TokenType::Set => {
                 if let Some(stmt) = set_statement::parse(self) {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -176,6 +189,7 @@ impl<'a> Parser<'a> {
             TokenType::Execute => {
                 if let Some(stmt) = self.parse_execute_statement() {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -187,6 +201,7 @@ impl<'a> Parser<'a> {
             TokenType::If => {
                 if let Some(stmt) = self.parse_if_statement() {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -198,6 +213,7 @@ impl<'a> Parser<'a> {
             TokenType::Function => {
                 if let Some(stmt) = self.parse_function_statement() {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -209,6 +225,7 @@ impl<'a> Parser<'a> {
             TokenType::For => {
                 if let Some(stmt) = self.parse_for_statement() {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -220,6 +237,7 @@ impl<'a> Parser<'a> {
             TokenType::While => {
                 if let Some(stmt) = while_statement::parse(self) {
                     return Some(Stmt {
+                        id: self.next_id(),
                         span: Span {
                             start: start,
                             end: self.last_pos,
@@ -231,6 +249,7 @@ impl<'a> Parser<'a> {
             TokenType::Comment => {}
             TokenType::NewLine => {
                 return Some(Stmt {
+                    id: self.next_id(),
                     span: Span {
                         start: start,
                         end: self.last_pos,
@@ -590,6 +609,7 @@ mod tests {
         assert_eq!(
             program.statements,
             &[Stmt {
+                id: NodeId(2),
                 span: Span {
                     start: BytePos(0),
                     end: BytePos(90)
@@ -598,6 +618,7 @@ mod tests {
                     name: "my#method".to_string(),
                     arguments: vec!["arg1".to_string(), "arg2".to_string()],
                     body: vec![Stmt {
+                        id: NodeId(1),
                         span: Span {
                             start: BytePos(54),
                             end: BytePos(67)
@@ -668,6 +689,7 @@ mod tests {
         assert_eq!(
             for_stmt.body,
             vec![Stmt {
+                id: NodeId(1),
                 span: Span {
                     start: BytePos(49),
                     end: BytePos(62)
