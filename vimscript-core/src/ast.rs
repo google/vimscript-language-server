@@ -25,8 +25,8 @@ pub struct NodeId(pub u32);
 pub struct Stmt {
     pub id: NodeId,
     pub span: Span,
-    // TODO: Add `id`, `span` and `comments` fields.
     pub kind: StmtKind,
+    // TODO: Add `comments` field.
 }
 
 impl Stmt {
@@ -257,9 +257,10 @@ impl WhileStatement {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Expr {
-    // TODO: Add `id`, `span` and `comments` fields.
+    pub id: NodeId,
     pub span: Span,
     pub kind: ExprKind,
+    // TODO: Add `comments` field.
 }
 
 impl Expr {

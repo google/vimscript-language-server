@@ -689,7 +689,7 @@ mod tests {
         assert_eq!(
             for_stmt.body,
             vec![Stmt {
-                id: NodeId(1),
+                id: NodeId(4),
                 span: Span {
                     start: BytePos(49),
                     end: BytePos(62)

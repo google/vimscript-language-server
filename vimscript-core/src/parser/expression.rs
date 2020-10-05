@@ -30,6 +30,7 @@ pub fn parse(parser: &mut Parser) -> Option<Expr> {
             parser.expect_token(TokenType::Colon)?;
             let rhs = parse(parser)?;
             return Some(Expr {
+                id: parser.next_id(),
                 span: Span {
                     start: lhs.span.start,
                     end: rhs.span.end,
@@ -47,6 +48,7 @@ pub fn parse(parser: &mut Parser) -> Option<Expr> {
         parser.advance();
         let right = parse_prefix_expression(parser)?;
         left = Expr {
+            id: parser.next_id(),
             span: Span {
                 start: left.span.start,
                 end: right.span.end,
@@ -97,6 +99,7 @@ fn parse_ident_expression(parser: &mut Parser) -> Option<Expr> {
     let start = BytePos(name_location.range.start.try_into().unwrap());
     let name = parser.expect_identifier()?;
     let mut left = Expr {
+        id: parser.next_id(),
         span: Span {
             start: start,
             end: parser.last_pos,
@@ -113,6 +116,7 @@ fn parse_ident_expression(parser: &mut Parser) -> Option<Expr> {
                 let arguments =
                     parser.parse_list(|p| p.parse_expression(), TokenType::RightParenthesis)?;
                 left = Expr {
+                    id: parser.next_id(),
                     span: Span {
                         start: start,
                         end: parser.last_pos,
@@ -128,6 +132,7 @@ fn parse_ident_expression(parser: &mut Parser) -> Option<Expr> {
                 let idx = parse_array_subscript(parser)?;
                 parser.expect_token(TokenType::RightBracket)?;
                 left = Expr {
+                    id: parser.next_id(),
                     span: Span {
                         start: start,
                         end: parser.last_pos,
@@ -185,6 +190,7 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
         TokenType::Number => {
             parser.advance();
             return Some(Expr {
+                id: parser.next_id(),
                 span: Span {
                     start: start,
                     end: parser.last_pos,
@@ -197,6 +203,7 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
         TokenType::StringLiteral => {
             parser.advance();
             return Some(Expr {
+                id: parser.next_id(),
                 span: Span {
                     start: start,
                     end: parser.last_pos,
@@ -212,6 +219,7 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
             let entries =
                 parser.parse_list(|p| parse_dictionary_entry(p), TokenType::RightCurlyBrace)?;
             return Some(Expr {
+                id: parser.next_id(),
                 span: Span {
                     start: start,
                     end: parser.last_pos,
@@ -225,6 +233,7 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
             let expr = parse(parser)?;
             parser.expect_token(TokenType::RightParenthesis)?;
             return Some(Expr {
+                id: parser.next_id(),
                 span: Span {
                     start: start,
                     end: parser.last_pos,
@@ -237,6 +246,7 @@ fn parse_prefix_expression(parser: &mut Parser) -> Option<Expr> {
         TokenType::Minus | TokenType::Bang => {
             parser.advance();
             return Some(Expr {
+                id: parser.next_id(),
                 span: Span {
                     start: start,
                     end: parser.last_pos,
@@ -260,6 +270,7 @@ fn parse_array(parser: &mut Parser) -> Option<Expr> {
     parser.expect_token(TokenType::LeftBracket);
     let elements = parser.parse_list(|p| parse(p), TokenType::RightBracket)?;
     return Some(Expr {
+        id: parser.next_id(),
         span: Span {
             start: start,
             end: parser.last_pos,
