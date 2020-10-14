@@ -1,0 +1,8 @@
+ROOT@0..9
+  LET_STMT@0..9
+    LET_KW@0..3 "let"
+    WHITESPACE@3..4 " "
+    EQ@4..5 "="
+    WHITESPACE@5..6 " "
+    IDENT_EXPR@6..9
+      IDENT@6..9 "l:a"
