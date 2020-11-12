@@ -88,6 +88,7 @@ pub enum TokenType {
     DivideAssign,
     ModuloAssign,
     DotAssign,
+    Finish,
     Comment,
     NewLine,
     Invalid,
@@ -166,6 +167,7 @@ impl TokenType {
             TokenType::DivideAssign => "`/=`",
             TokenType::ModuloAssign => "`%=`",
             TokenType::DotAssign => "`.=`",
+            TokenType::Finish => "`finish`",
             TokenType::Comment => "comment",
             TokenType::NewLine => "new line",
             TokenType::Invalid => "invalid",
@@ -618,6 +620,7 @@ impl<'a> Lexer<'a> {
             "execute" => TokenType::Execute,
             "return" => TokenType::Return,
             "abort" => TokenType::Abort,
+            "finish" => TokenType::Finish,
             _ => TokenType::Ident,
         });
     }
@@ -707,7 +710,7 @@ mod tests {
     #[test]
     fn parses_reserved_words() {
         assert_eq!(
-            parse_source("let return execute call break set for endfor while endwhile if endif function endfunction abort in"),
+            parse_source("let return execute call break set for endfor while endwhile if endif function endfunction abort in finish"),
             &[
                 (TokenType::Let, "let"),
                 (TokenType::Return, "return"),
@@ -725,6 +728,7 @@ mod tests {
                 (TokenType::EndFunction, "endfunction"),
                 (TokenType::Abort, "abort"),
                 (TokenType::In, "in"),
+                (TokenType::Finish, "finish"),
             ],
         );
     }

@@ -58,6 +58,7 @@ impl<'a, W: Write> State<'a, W> {
             StmtKind::If(s) => self.format_if_statement(&s),
             StmtKind::Let(s) => self.format_let_statement(&s),
             StmtKind::Return(s) => self.format_return_statement(&s),
+            StmtKind::Finish(s) => self.format_finish_statement(&s),
             StmtKind::Empty() => self.write("\n"),
             _ => panic!("some statement is not supported by formatter yet"),
         };
@@ -82,6 +83,12 @@ impl<'a, W: Write> State<'a, W> {
     fn format_return_statement(&mut self, _stmt: &ReturnStatement) {
         self.write_indent();
         self.write("return");
+        self.write("\n");
+    }
+
+    fn format_finish_statement(&mut self, _stmt: &FinishStatement) {
+        self.write_indent();
+        self.write("finish");
         self.write("\n");
     }
 

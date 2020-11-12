@@ -48,6 +48,7 @@ pub enum StmtKind {
     Try(TryStatement),
     Set(SetStatement),
     Break(BreakStatement),
+    Finish(FinishStatement),
     Empty(),
 }
 
@@ -63,6 +64,7 @@ impl StmtKind {
             StmtKind::Try(x) => json!({ "try": x.dump_for_testing() }),
             StmtKind::Set(x) => json!({ "set": x.dump_for_testing() }),
             StmtKind::Break(x) => json!({ "break": x.dump_for_testing() }),
+            StmtKind::Finish(x) => json!({ "finish": x.dump_for_testing() }),
             StmtKind::Empty() => json!("empty"),
             _ => json!({}),
         };
@@ -105,6 +107,15 @@ impl CallStatement {
 pub struct BreakStatement {}
 
 impl BreakStatement {
+    pub fn dump_for_testing(&self) -> serde_json::Value {
+        return json!({});
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub struct FinishStatement {}
+
+impl FinishStatement {
     pub fn dump_for_testing(&self) -> serde_json::Value {
         return json!({});
     }
