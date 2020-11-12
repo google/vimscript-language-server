@@ -246,6 +246,17 @@ impl<'a> Parser<'a> {
                     });
                 }
             }
+            TokenType::Finish => {
+                self.expect_end_of_statement()?;
+                return Some(Stmt {
+                    id: self.next_id(),
+                    span: Span {
+                        start: start,
+                        end: self.last_pos,
+                    },
+                    kind: StmtKind::Finish(FinishStatement {}),
+                });
+            }
             TokenType::Comment => {}
             TokenType::NewLine => {
                 return Some(Stmt {
