@@ -4,11 +4,18 @@
 pub enum SyntaxKind {
     EQ,
     PLUS,
+    // Number (any number acceptable by vim script)
+    NUMBER,
+    // Identifier, e.g. `l:a`
     IDENT,
 
     LET_KW,
 
+    // The whole let statement.
     LET_STMT,
+
+    // Variable to assign to (on the left side of the operator).
+    LET_VAR,
 
     IDENT_EXPR,
 

@@ -36,18 +36,19 @@ impl Parse {
     }
 }
 
-pub fn lex() -> Vec<(SyntaxKind, SmolStr)> {
+pub fn lex(_source: &str) -> Vec<(SyntaxKind, SmolStr)> {
     vec![
         (LET_KW, "let".into()),
         (WHITESPACE, " ".into()),
+        (IDENT, "l:a".into()),
         (EQ, "=".into()),
         (WHITESPACE, " ".into()),
-        (IDENT, "l:a".into()),
+        (NUMBER, "5".into()),
     ]
 }
 
-pub fn parse(_source: &str) -> Parse {
-    let tokens = lex();
+pub fn parse(source: &str) -> Parse {
+    let tokens = lex(source);
     let mut source = TextTokenSource {
         tokens: &tokens,
         current: 0,

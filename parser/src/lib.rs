@@ -29,24 +29,34 @@ pub fn parse(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
     sink.finish_node();
 }
 
+// TODO: should parsing a statement also "eat" newline?
 fn parse_let_stmt(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
     sink.start_node(LET_STMT);
 
     assert_eq!(source.current(), LET_KW);
+    bump_token_and_ws(source, sink);
+
+    sink.start_node(LET_VAR);
     bump_token(source, sink);
+    sink.finish_node();
 
     skip_ws(source, sink);
 
     assert_eq!(source.current(), EQ);
-    bump_token(source, sink);
+    bump_token_and_ws(source, sink);
 
+    parse_expr(source, sink);
+
+    sink.finish_node();
+}
+
+fn parse_expr(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
+    bump_token_and_ws(source, sink);
+}
+
+fn bump_token_and_ws(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
+    bump_token(source, sink);
     skip_ws(source, sink);
-
-    sink.start_node(IDENT_EXPR);
-    bump_token(source, sink);
-    sink.finish_node();
-
-    sink.finish_node();
 }
 
 fn skip_ws(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
