@@ -1,48 +1,22 @@
+// This module is very strongly based on rust-analyzer.
+
 use rowan::GreenNode;
 use rowan::GreenNodeBuilder;
 use rowan::SmolStr;
+use rowan::Language;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-#[allow(non_camel_case_types)]
-#[repr(u16)]
-pub enum SyntaxKind {
-    EQ,
-    PLUS,
-    IDENT,
-
-    LET_KW,
-
-    WHITESPACE,
-    // We use this because in vimscript new lines are important (end of statement).
-    NEW_LINE,
-    // Do I need this?
-    EOF,
-    ERROR,
-
-    LET_STMT,
-
-    IDENT_EXPR,
-
-    ROOT,
-}
+use parser::syntax_kind::SyntaxKind;
 use SyntaxKind::*;
 
-impl From<SyntaxKind> for rowan::SyntaxKind {
-    fn from(kind: SyntaxKind) -> Self {
-        Self(kind as u16)
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-enum VimscriptLang {}
+pub enum VimscriptLang {}
 impl rowan::Language for VimscriptLang {
     type Kind = SyntaxKind;
-    fn kind_from_raw(raw: rowan::SyntaxKind) -> Self::Kind {
-        assert!(raw.0 <= ROOT as u16);
-        unsafe { std::mem::transmute::<u16, SyntaxKind>(raw.0) }
+    fn kind_from_raw(raw: rowan::SyntaxKind) -> SyntaxKind {
+        SyntaxKind::from(raw.0)
     }
-    fn kind_to_raw(kind: Self::Kind) -> rowan::SyntaxKind {
-        kind.into()
+    fn kind_to_raw(kind: SyntaxKind) -> rowan::SyntaxKind {
+        rowan::SyntaxKind(kind.into())
     }
 }
 
@@ -70,7 +44,7 @@ pub fn lex() -> Vec<(SyntaxKind, SmolStr)> {
     ]
 }
 
-pub fn parse(source: &str) -> Parse {
+pub fn parse(_source: &str) -> Parse {
     let mut tokens = lex();
     tokens.reverse();
     Parser {
@@ -89,7 +63,7 @@ struct Parser {
 
 impl Parser {
     fn parse(mut self) -> Parse {
-        self.builder.start_node(ROOT.into());
+        self.start_node(ROOT.into());
 
         self.parse_stmt();
 
@@ -111,7 +85,7 @@ impl Parser {
 
     fn parse_let_stmt(&mut self) {
         assert_eq!(self.current(), Some(LET_KW));
-        self.builder.start_node(LET_STMT.into());
+        self.start_node(LET_STMT);
         self.bump();
         self.skip_ws();
         // TODO: what to do if this is not a valid element?
@@ -126,7 +100,7 @@ impl Parser {
     fn parse_expr(&mut self) {
         // TODO: this is parsing only ident expression
         assert_eq!(self.current(), Some(IDENT));
-        self.builder.start_node(IDENT_EXPR.into());
+        self.start_node(IDENT_EXPR);
         self.bump();
         self.builder.finish_node();
     }
@@ -136,7 +110,7 @@ impl Parser {
     // TODO: bump_any, bump based on kind, etc.
     fn bump(&mut self) {
         let (kind, text) = self.tokens.pop().unwrap();
-        self.builder.token(kind.into(), text);
+        self.token(kind.into(), text);
     }
 
     /// Peek at the first unprocessed token
@@ -148,6 +122,16 @@ impl Parser {
         while self.current() == Some(WHITESPACE) {
             self.bump()
         }
+    }
+
+    fn start_node(&mut self, kind: SyntaxKind) {
+        let kind = VimscriptLang::kind_to_raw(kind);
+        self.builder.start_node(kind);
+    }
+
+    pub fn token(&mut self, kind: SyntaxKind, text: SmolStr) {
+        let kind = VimscriptLang::kind_to_raw(kind);
+        self.builder.token(kind, text)
     }
 }
 

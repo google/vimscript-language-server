@@ -3,6 +3,7 @@
 members = [
     "lsp-tee",
     "syntax",
+    "parser",
     "vimscript-core",
     "vimscript-language-server",
     "vimscript-format",
