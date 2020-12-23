@@ -19,16 +19,43 @@ pub trait TreeSink {
     fn error(&mut self, error: String);
 }
 
-pub fn parse(_source: &mut impl TokenSource, sink: &mut impl TreeSink) {
+pub fn parse(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
     sink.start_node(ROOT);
-        sink.start_node(LET_STMT);
-            sink.token(LET_KW);
-            sink.token(WHITESPACE);
-            sink.token(EQ);
-            sink.token(WHITESPACE);
-            sink.start_node(IDENT_EXPR);
-                sink.token(IDENT);
-            sink.finish_node();
-        sink.finish_node();
+    match source.current() {
+        LET_KW => parse_let_stmt(source, sink),
+        // TODO: add error handling
+        _ => {}
+    }
     sink.finish_node();
+}
+
+fn parse_let_stmt(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
+    sink.start_node(LET_STMT);
+
+    assert_eq!(source.current(), LET_KW);
+    bump_token(source, sink);
+
+    skip_ws(source, sink);
+
+    assert_eq!(source.current(), EQ);
+    bump_token(source, sink);
+
+    skip_ws(source, sink);
+
+    sink.start_node(IDENT_EXPR);
+    bump_token(source, sink);
+    sink.finish_node();
+
+    sink.finish_node();
+}
+
+fn skip_ws(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
+    while source.current() == WHITESPACE {
+        bump_token(source, sink);
+    }
+}
+
+fn bump_token(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
+    sink.token(source.current());
+    source.bump();
 }
