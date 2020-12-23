@@ -21,6 +21,7 @@ The next steps:
 * build a foundation for generic linter (so that custom checks can be added),
 * support all syntax of Vim script.
 
+
 ## Setup
 
 ### Build

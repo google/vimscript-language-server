@@ -69,3 +69,9 @@ $ git rebase master
 ```shell
 $ cargo test
 ```
+
+## Architecture
+
+This codebase is very strongly inspired by rust-analyzer - it is strongly
+recommended to read
+https://github.com/rust-analyzer/rust-analyzer/blob/cf5bdf464cad7ceb9a67e07985a3f4d3799ec0b6/docs/dev/guide.md#guide-to-rust-analyzer.
