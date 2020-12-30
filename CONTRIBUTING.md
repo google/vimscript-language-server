@@ -40,7 +40,7 @@ Follow instructions on https://www.rust-lang.org/tools/install to install rust.
 2. Download fork
 
 ```shell
-$ git checkout git@github.com:YOUR_USERNAME/vimscript-language-server.git
+$ git clone git@github.com:YOUR_USERNAME/vimscript-language-server.git
 ```
 
 3. Specify a new remote `upstream`
