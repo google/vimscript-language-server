@@ -70,6 +70,19 @@ $ git rebase master
 $ cargo test
 ```
 
+### Cargo watch (optional)
+
+```shell
+$ cargo install cargo-watch
+```
+
+This crate allows running tests (or build) in watch mode (automatically reruns
+the tests when some file is changed). To start tests in watch mode, run:
+
+```shell
+$ cargo watch -x test
+```
+
 ## Architecture
 
 This codebase is very strongly inspired by rust-analyzer - it is strongly
