@@ -1,14 +1,21 @@
+use rowan::SmolStr;
+use rowan::TextSize;
 use parser::syntax_kind::SyntaxKind;
 use SyntaxKind::*;
-use rowan::SmolStr;
 
-pub fn lex(_source: &str) -> Vec<(SyntaxKind, SmolStr)> {
+pub struct Token {
+    pub kind: SyntaxKind,
+    pub len: TextSize,
+}
+
+pub fn lex(_source: &str) -> Vec<Token> {
     vec![
-        (LET_KW, "let".into()),
-        (WHITESPACE, " ".into()),
-        (IDENT, "l:a".into()),
-        (EQ, "=".into()),
-        (WHITESPACE, " ".into()),
-        (NUMBER, "5".into()),
+        Token{kind: LET_KW, len: 3.into()},
+        Token{kind: WHITESPACE, len: 1.into()},
+        Token{kind: IDENT, len: 3.into()},
+        Token{kind: WHITESPACE, len: 1.into()},
+        Token{kind: EQ, len: 1.into()},
+        Token{kind: WHITESPACE, len: 1.into()},
+        Token{kind: NUMBER, len: 1.into()},
     ]
 }

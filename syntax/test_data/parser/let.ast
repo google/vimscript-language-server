@@ -1,9 +1,10 @@
-ROOT@0..10
-  LET_STMT@0..10
+ROOT@0..11
+  LET_STMT@0..11
     LET_KW@0..3 "let"
     WHITESPACE@3..4 " "
     LET_VAR@4..7
       IDENT@4..7 "l:a"
-    EQ@7..8 "="
-    WHITESPACE@8..9 " "
-    NUMBER@9..10 "5"
+    WHITESPACE@7..8 " "
+    EQ@8..9 "="
+    WHITESPACE@9..10 " "
+    NUMBER@10..11 "5"

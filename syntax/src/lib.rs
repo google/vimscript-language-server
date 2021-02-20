@@ -6,12 +6,14 @@ use rowan::GreenNode;
 use rowan::GreenNodeBuilder;
 use rowan::Language;
 use rowan::SmolStr;
+use rowan::TextSize;
 
 use parser::syntax_kind::SyntaxKind;
 use parser::TokenSource;
 use parser::TreeSink;
 use SyntaxKind::*;
 use crate::lexer::lex;
+use crate::lexer::Token;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum VimscriptLang {}
@@ -39,18 +41,19 @@ impl Parse {
     }
 }
 
-
-pub fn parse(source: &str) -> Parse {
-    let tokens = lex(source);
+pub fn parse(content: &str) -> Parse {
+    let tokens = lex(content);
     let mut source = TextTokenSource {
         tokens: &tokens,
         current: 0,
     };
     let mut sink = TextTreeSink {
+        content: content,
         builder: GreenNodeBuilder::new(),
         errors: Vec::new(),
         tokens: &tokens,
         current: 0,
+        pos: 0,
     };
     parser::parse(&mut source, &mut sink);
     Parse {
@@ -60,9 +63,7 @@ pub fn parse(source: &str) -> Parse {
 }
 
 struct TextTokenSource<'a> {
-    // TODO: instead of SmolStr, pass the original text and use position (TextSize instead of
-    // SmolStr).
-    tokens: &'a [(SyntaxKind, SmolStr)],
+    tokens: &'a [Token],
     // Index into tokens
     current: usize,
 }
@@ -72,7 +73,7 @@ impl<'a> TokenSource for TextTokenSource<'a> {
         if self.current >= self.tokens.len() {
             return EOF;
         }
-        self.tokens[self.current].0
+        self.tokens[self.current].kind
     }
     fn bump(&mut self) {
         self.current += 1
@@ -81,21 +82,23 @@ impl<'a> TokenSource for TextTokenSource<'a> {
 
 struct TextTreeSink<'a> {
     builder: GreenNodeBuilder<'static>,
+    content: &'a str,
     // TODO: add position
     errors: Vec<String>,
-    // TODO: instead of SmolStr, pass the original text and use position (TextSize instead of
-    // SmolStr).
-    tokens: &'a [(SyntaxKind, SmolStr)],
+    tokens: &'a [Token],
     // Index into tokens
     current: usize,
+    pos: usize,
 }
 
 impl<'a> TreeSink for TextTreeSink<'a> {
     fn token(&mut self, kind: SyntaxKind) {
-        assert_eq!(kind, self.tokens[self.current].0);
+        assert_eq!(kind, self.tokens[self.current].kind);
         let kind = VimscriptLang::kind_to_raw(kind);
+        let len: usize = self.tokens[self.current].len.into();
         self.builder
-            .token(kind, self.tokens[self.current].1.clone());
+            .token(kind, SmolStr::new(&self.content[self.pos..(self.pos+len)]));
+        self.pos += len;
         self.current += 1;
     }
     fn start_node(&mut self, kind: SyntaxKind) {
