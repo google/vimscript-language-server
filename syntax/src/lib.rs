@@ -32,7 +32,7 @@ pub type SyntaxNode = rowan::SyntaxNode<VimscriptLang>;
 pub struct Parse {
     green_node: GreenNode,
     // TODO: add position
-    errors: Vec<String>,
+    pub errors: Vec<String>,
 }
 
 impl Parse {

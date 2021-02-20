@@ -14,35 +14,21 @@
 
 extern crate vimscript_core;
 
-use serde_json;
 use std::env;
 use std::fs;
-use vimscript_core::lexer::Lexer;
-use vimscript_core::parser::Parser;
+use syntax::parse;
 
 fn main() {
     let mut total_errors = 0;
     for filename in env::args().skip(1) {
         println!("{}", filename);
         let contents = fs::read_to_string(filename).expect("Something went wrong reading the file");
-        // TODO: read list of files from the command line
-        let mut parser = Parser::new(Lexer::new(&contents));
-        let program = parser.parse();
-        for error in &parser.errors {
+        let mut parsed = parse(&contents);
+        for error in &parsed.errors {
             println!("{:?}", error);
         }
-        total_errors += parser.errors.len();
-        if false {
-            let mut lexer = Lexer::new(&contents);
-            println!("{:?}", lexer.lex());
-        }
-        if false {
-            println!(
-                "{}",
-                serde_json::to_string_pretty(&program.dump_for_testing()).unwrap()
-            );
-        }
-        println!("\nError count: {}", parser.errors.len());
+        total_errors += parsed.errors.len();
+        println!("\nError count: {}", parsed.errors.len());
     }
     println!("\n\nTotal error count: {}", total_errors);
 }

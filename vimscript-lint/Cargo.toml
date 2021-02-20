@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 vimscript-core = { path = "../vimscript-core" }
 serde_json = "1.0"
+syntax = { path = "../syntax" }
