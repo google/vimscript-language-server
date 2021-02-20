@@ -10,3 +10,4 @@ expect-test = "1.0.1"
 [dependencies]
 rowan = "0.10.0"
 parser = { path = "../parser" }
+vimscript-core = { path = "../vimscript-core" }

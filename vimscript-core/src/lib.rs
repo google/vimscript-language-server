@@ -17,7 +17,7 @@ pub mod format;
 pub mod lexer;
 pub mod lsp;
 pub mod parser;
-mod peekable_chars_with_position;
+pub mod peekable_chars_with_position;
 pub mod protocol;
 pub mod rename;
 pub mod server;

@@ -286,6 +286,7 @@ dependencies = [
  "expect-test",
  "parser",
  "rowan",
+ "vimscript-core",
 ]
 
 [[package]]
