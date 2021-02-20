@@ -35,16 +35,36 @@ pub trait TreeSink {
 
 pub fn parse(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
     sink.start_node(ROOT);
-    match source.current() {
-        LET_KW => parse_let_stmt(source, sink),
-        // TODO: add error handling
-        _ => {}
+    loop {
+        while source.current() == WHITESPACE || source.current() == NEW_LINE {
+                bump_token(source, sink);
+        }
+
+        match source.current() {
+            LET_KW => parse_let_stmt(source, sink),
+            EOF => {
+                break;
+            }
+            _ => {
+                // TODO: Improve error handling (add position).
+                sink.error("expected keyword, found ...".to_owned());
+                sink.start_node(ERROR);
+                while source.current() != EOF && source.current() != NEW_LINE {
+                    bump_token(source, sink);
+                }
+                if (source.current() != EOF) {
+                    bump_token(source, sink);
+                }
+                sink.finish_node();
+            }
+        }
     }
     sink.finish_node();
 }
 
 // TODO: should parsing a statement also "eat" newline?
 fn parse_let_stmt(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
+    // TODO: this is missing error recovery, as well as many of "let" statement features.
     sink.start_node(LET_STMT);
 
     assert_eq!(source.current(), LET_KW);
@@ -56,7 +76,7 @@ fn parse_let_stmt(source: &mut impl TokenSource, sink: &mut impl TreeSink) {
 
     skip_ws(source, sink);
 
-    assert_eq!(source.current(), EQ);
+    // assert_eq!(source.current(), EQ);
     bump_token_and_ws(source, sink);
 
     parse_expr(source, sink);

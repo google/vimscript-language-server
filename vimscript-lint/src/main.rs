@@ -27,6 +27,9 @@ fn main() {
         for error in &parsed.errors {
             println!("{:?}", error);
         }
+        if true {
+            println!("{:#?}", parsed.syntax())
+        }
         total_errors += parsed.errors.len();
         println!("\nError count: {}", parsed.errors.len());
     }

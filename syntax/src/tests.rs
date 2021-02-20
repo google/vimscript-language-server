@@ -84,7 +84,9 @@ fn parser() {
         let content = std::fs::read_to_string(&case.vim).unwrap();
         let parsed = parse(&content);
 
-        let debug_dump = format!("{:#?}", parsed.syntax());
+        let debug_dump = format!("{:#?}\n{}\n", 
+                                 parsed.syntax(), 
+                                 parsed.errors.into_iter().map(|x| format!("error: {}", x)).collect::<Vec<String>>().join(""));
         expect_file![&case.ast].assert_eq(&debug_dump);
     }
 }
