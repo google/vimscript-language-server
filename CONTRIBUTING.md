@@ -70,6 +70,14 @@ $ git rebase master
 $ cargo test
 ```
 
+### Update expect file
+
+To automatically update the expected file, run:
+
+```shell
+$ UPDATE_EXPECT=1 cargo test
+```
+
 ## Architecture
 
 This codebase is very strongly inspired by rust-analyzer - it is strongly

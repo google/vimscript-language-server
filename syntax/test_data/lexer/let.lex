@@ -1,0 +1,7 @@
+LET_KW 3 "let"
+WHITESPACE 1 " "
+IDENT 3 "l:a"
+WHITESPACE 1 " "
+EQ 1 "="
+WHITESPACE 1 " "
+NUMBER 1 "5"

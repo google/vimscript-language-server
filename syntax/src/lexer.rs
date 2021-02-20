@@ -1,8 +1,8 @@
-use rowan::SmolStr;
 use rowan::TextSize;
 use parser::syntax_kind::SyntaxKind;
 use SyntaxKind::*;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Token {
     pub kind: SyntaxKind,
     pub len: TextSize,
