@@ -40,7 +40,7 @@ Follow instructions on https://www.rust-lang.org/tools/install to install rust.
 2. Download fork
 
 ```shell
-$ git checkout git@github.com:YOUR_USERNAME/vimscript-language-server.git
+$ git clone git@github.com:YOUR_USERNAME/vimscript-language-server.git
 ```
 
 3. Specify a new remote `upstream`
@@ -76,6 +76,19 @@ To automatically update the expected file, run:
 
 ```shell
 $ UPDATE_EXPECT=1 cargo test
+```
+
+### Cargo watch (optional)
+
+```shell
+$ cargo install cargo-watch
+```
+
+This crate allows running tests (or build) in watch mode (automatically reruns
+the tests when some file is changed). To start tests in watch mode, run:
+
+```shell
+$ cargo watch -x test
 ```
 
 ## Architecture
