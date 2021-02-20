@@ -1,5 +1,7 @@
 // This module is very strongly based on rust-analyzer.
 
+pub mod lexer;
+
 use rowan::GreenNode;
 use rowan::GreenNodeBuilder;
 use rowan::Language;
@@ -9,6 +11,7 @@ use parser::syntax_kind::SyntaxKind;
 use parser::TokenSource;
 use parser::TreeSink;
 use SyntaxKind::*;
+use crate::lexer::lex;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum VimscriptLang {}
@@ -36,16 +39,6 @@ impl Parse {
     }
 }
 
-pub fn lex(_source: &str) -> Vec<(SyntaxKind, SmolStr)> {
-    vec![
-        (LET_KW, "let".into()),
-        (WHITESPACE, " ".into()),
-        (IDENT, "l:a".into()),
-        (EQ, "=".into()),
-        (WHITESPACE, " ".into()),
-        (NUMBER, "5".into()),
-    ]
-}
 
 pub fn parse(source: &str) -> Parse {
     let tokens = lex(source);
