@@ -27,10 +27,16 @@ The next steps:
 ### Build
 
 ```shell
-$ cargo build
+$ cargo build --release
 ```
 
 Then, copy built binary to a location that is in your PATH.
+
+Alternatively, just run:
+
+```shell
+$ cargo install --path .
+```
 
 ### Configure in vim-lsp
 
