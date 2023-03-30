@@ -38,7 +38,7 @@ Then, copy built binary to a location that is in your PATH.
 if executable('vimscript-language-server')
   au User lsp_setup call lsp#register_server({
           \ 'name': 'vimscript-language-server',
-          \ 'cmd': {server_info->WrapLspTee(['vimscript-language-server'])},
+          \ 'cmd': {server_info->['vimscript-language-server']},
           \ 'whitelist': ['vim'],
           \ })
 endif
